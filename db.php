@@ -11,14 +11,28 @@ function getDBConnection(): PDO {
         return $pdo;
     }
 
-    $config = require __DIR__ . '/config.php';
+    $rawConfig = require __DIR__ . '/config.php';
 
-    $host = $config['host'];
-    $port = $config['port'];
-    $dbname = $config['dbname'];
-    $user = $config['user'];
-    $password = $config['password'];
-    $charset = $config['charset'] ?? 'utf8mb4';
+    // Support both `return [...]` array and `const config = [...]`
+    if (!is_array($rawConfig) && defined('config')) {
+        $rawConfig = constant('config');
+    }
+
+    // Flexible key mapping
+    $host     = $rawConfig['host'] ?? $rawConfig['db_host'] ?? 'localhost';
+    $port     = $rawConfig['port'] ?? $rawConfig['db_port'] ?? '3306';
+    $dbname   = $rawConfig['dbname'] ?? $rawConfig['database'] ?? 'todolist_app';
+    $user     = $rawConfig['user'] ?? $rawConfig['db_user'] ?? 'root';
+    $password = $rawConfig['password'] ?? $rawConfig['pass'] ?? $rawConfig['db_pass'] ?? '';
+    $charset  = $rawConfig['charset'] ?? 'utf8mb4';
+
+    // If a full DSN was provided in config
+    if (!empty($rawConfig['dsn'])) {
+        if (preg_match('/host=([^;]+)/', $rawConfig['dsn'], $m)) $host = $m[1];
+        if (preg_match('/port=([^;]+)/', $rawConfig['dsn'], $m)) $port = $m[1];
+        if (preg_match('/dbname=([^;]+)/', $rawConfig['dsn'], $m)) $dbname = $m[1];
+        if (preg_match('/charset=([^;]+)/', $rawConfig['dsn'], $m)) $charset = $m[1];
+    }
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -96,4 +110,3 @@ function initializeTables(PDO $pdo): void {
         }
     }
 }
-

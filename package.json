@@ -1,0 +1,12 @@
+{
+  "name": "todolist-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E automated tests for ToDoList app",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

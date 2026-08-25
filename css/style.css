@@ -4,8 +4,10 @@
 
 :root {
   /* Color Palette - Light Theme */
-  --bg-body: #f8fafc;
-  --bg-card: #ffffff;
+  --bg-body: #cce9c4;
+  /* f8fafc */
+  --bg-card: #42dc51;
+  /* ffffff */
   --bg-card-hover: #f1f5f9;
   --bg-input: #f8fafc;
   --bg-dialog: #ffffff;
@@ -14,13 +16,13 @@
   --text-subtle: #94a3b8;
   --border-color: #e2e8f0;
   --border-focus: #6366f1;
-  
+
   /* Primary & Accent Colors */
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-light: #eef2ff;
   --primary-text: #4338ca;
-  
+
   /* Status Colors */
   --success: #10b981;
   --success-light: #ecfdf5;
@@ -30,7 +32,7 @@
   --danger-light: #fef2f2;
   --info: #0ea5e9;
   --info-light: #f0f9ff;
-  
+
   /* Priority Colors */
   --priority-high-bg: #fee2e2;
   --priority-high-text: #b91c1c;
@@ -47,7 +49,7 @@
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-full: 9999px;
-  
+
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
@@ -55,28 +57,31 @@
 
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
-  
+
   --header-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
 }
 
 /* Dark Theme */
 [data-theme="dark"] {
-  --bg-body: #090d16;
-  --bg-card: #131b2e;
+  --bg-body: #1a2642;
+  /* 090d16 */
+  --bg-card: #46557a;
+  /* 131b2e */
   --bg-card-hover: #1c2742;
   --bg-input: #1a233a;
   --bg-dialog: #131b2e;
   --text-main: #f8fafc;
+  /* f8fafc */
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
   --border-color: #24304f;
   --border-focus: #818cf8;
-  
+
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --primary-light: rgba(99, 102, 241, 0.15);
   --primary-text: #a5b4fc;
-  
+
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
@@ -85,7 +90,7 @@
   --danger-light: rgba(239, 68, 68, 0.18);
   --info: #38bdf8;
   --info-light: rgba(14, 165, 233, 0.15);
-  
+
   --priority-high-bg: rgba(239, 68, 68, 0.2);
   --priority-high-text: #fca5a5;
   --priority-high-border: rgba(239, 68, 68, 0.4);
@@ -242,10 +247,25 @@ body {
   font-size: 20px;
 }
 
-.stat-icon.total { background: var(--primary-light); color: var(--primary); }
-.stat-icon.active { background: var(--warning-light); color: var(--warning); }
-.stat-icon.completed { background: var(--success-light); color: var(--success); }
-.stat-icon.overdue { background: var(--danger-light); color: var(--danger); }
+.stat-icon.total {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.stat-icon.active {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.stat-icon.completed {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.stat-icon.overdue {
+  background: var(--danger-light);
+  color: var(--danger);
+}
 
 .stat-info {
   display: flex;
@@ -383,7 +403,9 @@ body {
   color: var(--text-muted);
 }
 
-.form-select, .form-date-input, .form-textarea {
+.form-select,
+.form-date-input,
+.form-textarea {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
   color: var(--text-main);
@@ -394,7 +416,9 @@ body {
   transition: border-color var(--transition-fast);
 }
 
-.form-select:focus, .form-date-input:focus, .form-textarea:focus {
+.form-select:focus,
+.form-date-input:focus,
+.form-textarea:focus {
   border-color: var(--border-focus);
 }
 
@@ -631,9 +655,17 @@ body {
   width: 4px;
 }
 
-.task-card.priority-high::before { background-color: var(--danger); }
-.task-card.priority-medium::before { background-color: var(--warning); }
-.task-card.priority-low::before { background-color: var(--info); }
+.task-card.priority-high::before {
+  background-color: var(--danger);
+}
+
+.task-card.priority-medium::before {
+  background-color: var(--warning);
+}
+
+.task-card.priority-low::before {
+  background-color: var(--info);
+}
 
 /* Custom Checkbox */
 .custom-checkbox {
@@ -671,7 +703,7 @@ body {
   border-color: var(--primary);
 }
 
-.custom-checkbox input:checked ~ .checkmark {
+.custom-checkbox input:checked~.checkmark {
   background-color: var(--success);
   border-color: var(--success);
 }
@@ -682,7 +714,7 @@ body {
   font-size: 14px;
 }
 
-.custom-checkbox input:checked ~ .checkmark .checkmark-icon {
+.custom-checkbox input:checked~.checkmark .checkmark-icon {
   display: block;
 }
 
@@ -979,18 +1011,40 @@ dialog.modal-dialog::backdrop {
   animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
 }
 
-.toast.success { border-left: 4px solid var(--success); }
-.toast.error { border-left: 4px solid var(--danger); }
-.toast.info { border-left: 4px solid var(--info); }
+.toast.success {
+  border-left: 4px solid var(--success);
+}
+
+.toast.error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast.info {
+  border-left: 4px solid var(--info);
+}
 
 @keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(10px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 }
 
 /* ==========================================================================
@@ -1043,4 +1097,3 @@ dialog.modal-dialog::backdrop {
     justify-content: center;
   }
 }
-

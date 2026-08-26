@@ -1,7 +1,8 @@
 <?php
 /**
  * Database Configuration
- * MySQL connection settings for ToDoList App
+ * MySQL connection settings for ToDoList 
+ * データ保存先：さくらデータベース abot_db
  */
 
 return [

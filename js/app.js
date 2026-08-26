@@ -11,12 +11,27 @@ document.addEventListener('DOMContentLoaded', () => {
     priority: 'all',
     sort: 'created_desc',
     searchQuery: '',
+    viewMode: 'list',       // list | schedule
+    scheduleOffsetDays: 0,  // Offset from today for schedule week view
     categories: [],
     tasks: []
   };
 
   // DOM Elements
   const themeToggleBtn = document.getElementById('theme-toggle');  // トグルボタン
+  const viewModeListBtn = document.getElementById('view-mode-list');
+  const viewModeScheduleBtn = document.getElementById('view-mode-schedule');
+  const scheduleViewContainer = document.getElementById('schedule-view-container');
+
+  const schedPrevWeekBtn = document.getElementById('sched-prev-week');
+  const schedNextWeekBtn = document.getElementById('sched-next-week');
+  const schedTodayBtn = document.getElementById('sched-today');
+  const scheduleRangeLabel = document.getElementById('schedule-range-label');
+  const scheduleTableHeader = document.getElementById('schedule-table-header');
+  const scheduleTableBody = document.getElementById('schedule-table-body');
+  const unscheduledCountBadge = document.getElementById('unscheduled-count-badge');
+  const unscheduledTasksList = document.getElementById('unscheduled-tasks-list');
+
   const taskForm = document.getElementById('task-form');
   const taskTitleInput = document.getElementById('task-title-input');
   const taskCategorySelect = document.getElementById('task-category-select');
@@ -228,9 +243,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 5. Task List Rendering
+  // 5. Task List & Schedule Rendering
   // --------------------------------------------------------------------------
   function renderTasks() {
+    if (state.viewMode === 'schedule') {
+      taskListContainer.style.display = 'none';
+      scheduleViewContainer.style.display = 'flex';
+      renderScheduleView();
+    } else {
+      scheduleViewContainer.style.display = 'none';
+      taskListContainer.style.display = 'flex';
+      renderListView();
+    }
+  }
+
+  function renderListView() {
     taskListContainer.innerHTML = '';
 
     if (state.tasks.length === 0) {
@@ -244,6 +271,243 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = createTaskCard(task);
       taskListContainer.appendChild(card);
     });
+  }
+
+  // --------------------------------------------------------------------------
+  // 5b. Schedule Matrix View Rendering (左にDoリスト、上に日付のTable)
+  // --------------------------------------------------------------------------
+  function renderScheduleView() {
+    emptyState.style.display = 'none';
+
+    // 1. Calculate 7 dates based on scheduleOffsetDays
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() + state.scheduleOffsetDays);
+
+    const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+    const dateColumns = []; // Array of { dateObj, formattedDateStr, label, isToday }
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${dateNum}`;
+
+      const dayName = daysOfWeek[d.getDay()];
+      const isToday = d.getTime() === today.getTime();
+
+      dateColumns.push({
+        dateObj: d,
+        dateStr,
+        label: `${d.getMonth() + 1}/${d.getDate()} (${dayName})`,
+        isToday
+      });
+    }
+
+    // Update Schedule Range Label Header
+    const firstCol = dateColumns[0];
+    const lastCol = dateColumns[6];
+    scheduleRangeLabel.textContent = `${firstCol.dateObj.getFullYear()}年${firstCol.dateObj.getMonth() + 1}月${firstCol.dateObj.getDate()}日 〜 ${lastCol.dateObj.getMonth() + 1}月${lastCol.dateObj.getDate()}日`;
+
+    // 2. Render Table Header
+    scheduleTableHeader.innerHTML = `
+      <th class="col-task-header">Doリスト (タスク名)</th>
+      ${dateColumns.map(col => `
+        <th class="col-date-header ${col.isToday ? 'is-today' : ''}">
+          ${escapeHtml(col.label)}
+          ${col.isToday ? '<div style="font-size: 0.7rem; color: var(--primary); font-weight:700;">今日</div>' : ''}
+        </th>
+      `).join('')}
+    `;
+
+    // 3. Separate Tasks: Scheduled (with due_date) vs Unscheduled (without due_date)
+    const scheduledTasks = state.tasks.filter(t => t.due_date && t.due_date.trim() !== '');
+    const unscheduledTasks = state.tasks.filter(t => !t.due_date || t.due_date.trim() === '');
+
+    // 4. Render Table Rows for Scheduled Tasks
+    scheduleTableBody.innerHTML = '';
+
+    if (scheduledTasks.length === 0) {
+      scheduleTableBody.innerHTML = `
+        <tr>
+          <td colspan="${dateColumns.length + 1}" style="padding: 24px; text-align: center; color: var(--text-muted);">
+            期限日時が設定されたDoリストタスクがありません。下の「日付指定なしのタスク」から日付を設定してください。
+          </td>
+        </tr>
+      `;
+    } else {
+      scheduledTasks.forEach(task => {
+        const tr = document.createElement('tr');
+
+        // Task Date (YYYY-MM-DD)
+        const taskDateStr = task.due_date ? task.due_date.split(' ')[0] : '';
+
+        // Priority Badge HTML
+        const priorityLabels = { high: '高', medium: '中', low: '低' };
+
+        // Left Column: Task Info
+        let taskInfoHtml = `
+          <td class="cell-task-info">
+            <div class="sched-task-title ${task.is_completed ? 'completed' : ''}">${escapeHtml(task.title)}</div>
+            <div class="sched-task-meta">
+              <span class="badge badge-category">${escapeHtml(task.category)}</span>
+              <span class="badge badge-priority-${task.priority}">${priorityLabels[task.priority]}</span>
+            </div>
+          </td>
+        `;
+
+        // Date Columns (7 cols)
+        let dateCellsHtml = dateColumns.map(col => {
+          const matches = (taskDateStr === col.dateStr);
+
+          if (matches) {
+            let badgeClass = 'active';
+            let markText = '✓ 実施予定';
+
+            if (task.is_completed) {
+              badgeClass = 'completed';
+              markText = '✓ 完了';
+            } else if (task.is_overdue) {
+              badgeClass = 'overdue';
+              markText = '⚠️ 期限切れ';
+            }
+
+            return `
+              <td class="schedule-cell marked is-${badgeClass}" data-task-id="${task.id}" data-date="${col.dateStr}" title="クリックで完了ステータス切り替え / 編集">
+                <span class="sched-mark-badge ${badgeClass}">${markText}</span>
+              </td>
+            `;
+          } else {
+            return `
+              <td class="schedule-cell" data-task-id="${task.id}" data-date="${col.dateStr}" title="この日に実施日を変更">
+                <span class="sched-cell-empty">+ 設定</span>
+              </td>
+            `;
+          }
+        }).join('');
+
+        tr.innerHTML = taskInfoHtml + dateCellsHtml;
+
+        // Add Click Handlers for Schedule Cells
+        tr.querySelectorAll('.schedule-cell').forEach(cell => {
+          cell.addEventListener('click', () => {
+            const taskId = parseInt(cell.dataset.taskId, 10);
+            const targetDateStr = cell.dataset.date;
+
+            if (cell.classList.contains('marked')) {
+              // Toggle task completion or edit
+              toggleTaskCompletion(taskId);
+            } else {
+              // Assign new due date for task
+              assignTaskDueDate(taskId, targetDateStr);
+            }
+          });
+        });
+
+        scheduleTableBody.appendChild(tr);
+      });
+    }
+
+    // 5. Render Unscheduled Tasks Section (日付指定の無いタスク)
+    renderUnscheduledTasks(unscheduledTasks, dateColumns);
+  }
+
+  // Render Unscheduled Tasks
+  function renderUnscheduledTasks(unscheduledTasks, dateColumns) {
+    unscheduledCountBadge.textContent = `${unscheduledTasks.length}件`;
+    unscheduledTasksList.innerHTML = '';
+
+    if (unscheduledTasks.length === 0) {
+      unscheduledTasksList.innerHTML = `
+        <div class="empty-unscheduled">
+          日付指定のないタスクはありません✨
+        </div>
+      `;
+      return;
+    }
+
+    const todayStr = dateColumns.find(c => c.isToday)?.dateStr || new Date().toISOString().split('T')[0];
+
+    unscheduledTasks.forEach(task => {
+      const card = document.createElement('div');
+      card.className = 'unscheduled-card';
+
+      const priorityLabels = { high: '高', medium: '中', low: '低' };
+
+      card.innerHTML = `
+        <div class="unscheduled-card-header">
+          <label class="custom-checkbox" title="${task.is_completed ? '未完了に戻す' : '完了にする'}">
+            <input type="checkbox" ${task.is_completed ? 'checked' : ''} class="task-checkbox">
+            <span class="checkmark">
+              <svg class="checkmark-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+          </label>
+          <div class="unscheduled-card-body">
+            <div class="unscheduled-card-title ${task.is_completed ? 'completed' : ''}">${escapeHtml(task.title)}</div>
+            <div class="task-meta">
+              <span class="badge badge-category">${escapeHtml(task.category)}</span>
+              <span class="badge badge-priority-${task.priority}">優先度: ${priorityLabels[task.priority]}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="unscheduled-card-actions">
+          <button class="btn-assign-date btn-today" data-task-id="${task.id}" data-date="${todayStr}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            今日に設定
+          </button>
+          <button class="action-btn btn-edit" data-task-id="${task.id}" title="編集・日付指定">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          </button>
+        </div>
+      `;
+
+      // Event listeners
+      const checkbox = card.querySelector('.task-checkbox');
+      checkbox.addEventListener('change', () => toggleTaskCompletion(task.id));
+
+      const assignTodayBtn = card.querySelector('.btn-today');
+      assignTodayBtn.addEventListener('click', () => assignTaskDueDate(task.id, todayStr));
+
+      const editBtn = card.querySelector('.btn-edit');
+      editBtn.addEventListener('click', () => openEditModal(task));
+
+      unscheduledTasksList.appendChild(card);
+    });
+  }
+
+  // Quick Date Setter for Task
+  async function assignTaskDueDate(taskId, dateStr) {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Append 09:00 default time if dateStr is YYYY-MM-DD
+    const fullDueDate = `${dateStr} 09:00:00`;
+
+    const payload = {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      category: task.category,
+      priority: task.priority,
+      due_date: fullDueDate,
+      is_completed: task.is_completed ? 1 : 0
+    };
+
+    try {
+      const res = await apiRequest('api.php?action=update', 'POST', payload);
+      if (res && res.success) {
+        showToast(`実施日を ${dateStr} に変更しました！`, 'success');
+        await refreshAll();
+      }
+    } catch (err) {
+      // handled
+    }
   }
 
   function createTaskCard(task) {
@@ -540,6 +804,46 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleDetailsBtn.innerHTML = isShowing
         ? `詳細を閉じる <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`
         : `詳細を追加 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 9b. View Mode & Schedule Navigation Events
+  // --------------------------------------------------------------------------
+  if (viewModeListBtn && viewModeScheduleBtn) {
+    viewModeListBtn.addEventListener('click', () => {
+      state.viewMode = 'list';
+      viewModeListBtn.classList.add('active');
+      viewModeScheduleBtn.classList.remove('active');
+      renderTasks();
+    });
+
+    viewModeScheduleBtn.addEventListener('click', () => {
+      state.viewMode = 'schedule';
+      viewModeScheduleBtn.classList.add('active');
+      viewModeListBtn.classList.remove('active');
+      renderTasks();
+    });
+  }
+
+  if (schedPrevWeekBtn) {
+    schedPrevWeekBtn.addEventListener('click', () => {
+      state.scheduleOffsetDays -= 7;
+      renderScheduleView();
+    });
+  }
+
+  if (schedNextWeekBtn) {
+    schedNextWeekBtn.addEventListener('click', () => {
+      state.scheduleOffsetDays += 7;
+      renderScheduleView();
+    });
+  }
+
+  if (schedTodayBtn) {
+    schedTodayBtn.addEventListener('click', () => {
+      state.scheduleOffsetDays = 0;
+      renderScheduleView();
     });
   }
 

@@ -63,4 +63,25 @@ test.describe('ToDoList Web App E2E Test Suite', () => {
         await expect(activeFilterBtn).toHaveClass(/active/);
     });
 
+    test('5. スケジュール表示切り替えとマトリックス・日付なしタスク検証', async ({ page }) => {
+        // 1. スケジュール表示ボタンをクリック
+        await page.click('#view-mode-schedule');
+        const schedContainer = page.locator('#schedule-view-container');
+        await expect(schedContainer).toBeVisible();
+
+        // 2. テーブルヘッダーに日付項目が表示されているか検証
+        const schedTable = page.locator('#schedule-table');
+        await expect(schedTable).toBeVisible();
+        await expect(page.locator('#schedule-table-header th').first()).toContainText('Doリスト');
+
+        // 3. 日付指定なしのタスクエリアが表示されているか検証
+        const unscheduledSection = page.locator('.unscheduled-section');
+        await expect(unscheduledSection).toBeVisible();
+
+        // 4. リスト表示に戻す
+        await page.click('#view-mode-list');
+        await expect(schedContainer).toBeHidden();
+        await expect(page.locator('#task-list-container')).toBeVisible();
+    });
+
 });

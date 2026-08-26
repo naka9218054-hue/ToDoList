@@ -45,8 +45,33 @@
         </div>
       </div>
 
-      <!-- トグルボタン（43行目〜47行目）: テーマをライト/ダークに切り替えるボタン-->
+      <!-- トグルボタン: テーマ切り替え / ビューモード切り替え -->
       <div class="header-actions">
+        <div class="view-mode-toggle">
+          <button id="view-mode-list" class="view-toggle-btn active" title="リスト表示">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            リスト
+          </button>
+          <button id="view-mode-schedule" class="view-toggle-btn" title="スケジュール表示">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+              <line x1="9" y1="14" x2="9" y2="14.01"></line>
+              <line x1="15" y1="14" x2="15" y2="14.01"></line>
+            </svg>
+            スケジュール
+          </button>
+        </div>
+
         <button id="theme-toggle" class="icon-btn" title="テーマ切り替え (ダーク/ライト)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -248,8 +273,59 @@
 
     <!-- Task List Area -->
     <main>
+      <!-- Standard Task List View -->
       <div id="task-list-container" class="task-list-container">
         <!-- Dynamically rendered task cards will appear here -->
+      </div>
+
+      <!-- Schedule Table View Container (Initially Hidden) -->
+      <div id="schedule-view-container" class="schedule-view-container" style="display: none;">
+        
+        <!-- Schedule Header Controls -->
+        <div class="schedule-nav-header">
+          <div class="schedule-date-controls">
+            <button id="sched-prev-week" class="btn-secondary" title="前週へ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              前の週
+            </button>
+            <button id="sched-today" class="btn-secondary" title="今週を表示">今日 / 今週</button>
+            <button id="sched-next-week" class="btn-secondary" title="次週へ">
+              次週
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <div id="schedule-range-label" class="schedule-range-label">2026年8月26日 〜 2026年9月1日</div>
+        </div>
+
+        <!-- Schedule Matrix Table Wrapper -->
+        <div class="schedule-table-wrapper">
+          <table class="schedule-table" id="schedule-table">
+            <thead>
+              <tr id="schedule-table-header">
+                <th class="col-task-header">Doリスト (タスク名)</th>
+                <!-- Dates will be dynamically populated -->
+              </tr>
+            </thead>
+            <tbody id="schedule-table-body">
+              <!-- Task rows with date marks will be rendered here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Unscheduled Tasks Section (日付指定の無いタスク) -->
+        <div class="unscheduled-section">
+          <div class="unscheduled-header">
+            <div class="unscheduled-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              📅 日付指定なしのタスク (未定のDoリスト)
+            </div>
+            <span id="unscheduled-count-badge" class="pill-badge">0件</span>
+          </div>
+          <div id="unscheduled-tasks-list" class="unscheduled-tasks-list">
+            <!-- Unscheduled task items will be populated here -->
+          </div>
+        </div>
+
       </div>
 
       <!-- Empty State -->

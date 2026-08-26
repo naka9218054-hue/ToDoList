@@ -69,10 +69,16 @@ test.describe('ToDoList Web App E2E Test Suite', () => {
         const schedContainer = page.locator('#schedule-view-container');
         await expect(schedContainer).toBeVisible();
 
-        // 2. テーブルヘッダーに日付項目が表示されているか検証
+        // 2. テーブルヘッダーに1週間（日付）と2,3,4週まとめ項目が表示されているか検証
         const schedTable = page.locator('#schedule-table');
         await expect(schedTable).toBeVisible();
         await expect(page.locator('#schedule-table-header th').first()).toContainText('Doリスト');
+
+        const weekHeaders = page.locator('.col-week-header');
+        await expect(weekHeaders).toHaveCount(3);
+        await expect(weekHeaders.nth(0)).toContainText('第2週');
+        await expect(weekHeaders.nth(1)).toContainText('第3週');
+        await expect(weekHeaders.nth(2)).toContainText('第4週');
 
         // 3. 日付指定なしのタスクエリアが表示されているか検証
         const unscheduledSection = page.locator('.unscheduled-section');

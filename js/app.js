@@ -274,12 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 5b. Schedule Matrix View Rendering (左にDoリスト、上に日付のTable)
+  // 5b. Schedule Matrix View Rendering (左にDoリスト、上に日付(第1週) + 第2・3・4週まとめのTable)
   // --------------------------------------------------------------------------
   function renderScheduleView() {
     emptyState.style.display = 'none';
 
-    // 1. Calculate 7 dates based on scheduleOffsetDays
+    // 1. Calculate 7 daily dates for Week 1 based on scheduleOffsetDays
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startDate.setDate(startDate.getDate() + state.scheduleOffsetDays);
 
     const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-    const dateColumns = []; // Array of { dateObj, formattedDateStr, label, isToday }
+    const dateColumns = []; // Array of 7 daily columns
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(startDate);
@@ -302,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isToday = d.getTime() === today.getTime();
 
       dateColumns.push({
+        type: 'day',
         dateObj: d,
         dateStr,
         label: `${d.getMonth() + 1}/${d.getDate()} (${dayName})`,
@@ -309,12 +310,44 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // 2. Calculate summary columns for Week 2, Week 3, and Week 4
+    const weekSummaryColumns = [];
+    for (let w = 2; w <= 4; w++) {
+      const wStart = new Date(startDate);
+      wStart.setDate(wStart.getDate() + (w - 1) * 7);
+
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wEnd.getDate() + 6);
+
+      const formatYMD = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dateNum = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dateNum}`;
+      };
+
+      const startMD = `${wStart.getMonth() + 1}/${wStart.getDate()}`;
+      const endMD = `${wEnd.getMonth() + 1}/${wEnd.getDate()}`;
+
+      weekSummaryColumns.push({
+        type: 'week',
+        weekNum: w,
+        startDateStr: formatYMD(wStart),
+        endDateStr: formatYMD(wEnd),
+        label: `第${w}週 (${startMD}〜${endMD})`
+      });
+    }
+
+    // Combine all columns (7 days + 3 weekly summaries)
+    const allColumns = [...dateColumns, ...weekSummaryColumns];
+
     // Update Schedule Range Label Header
     const firstCol = dateColumns[0];
-    const lastCol = dateColumns[6];
-    scheduleRangeLabel.textContent = `${firstCol.dateObj.getFullYear()}年${firstCol.dateObj.getMonth() + 1}月${firstCol.dateObj.getDate()}日 〜 ${lastCol.dateObj.getMonth() + 1}月${lastCol.dateObj.getDate()}日`;
+    const lastWeekCol = weekSummaryColumns[weekSummaryColumns.length - 1];
+    const lastWeekEndDate = new Date(lastWeekCol.endDateStr);
+    scheduleRangeLabel.textContent = `${firstCol.dateObj.getFullYear()}年${firstCol.dateObj.getMonth() + 1}月${firstCol.dateObj.getDate()}日 〜 ${lastWeekEndDate.getMonth() + 1}月${lastWeekEndDate.getDate()}日 (4週間)`;
 
-    // 2. Render Table Header
+    // 3. Render Table Header
     scheduleTableHeader.innerHTML = `
       <th class="col-task-header">Doリスト (タスク名)</th>
       ${dateColumns.map(col => `
@@ -323,19 +356,24 @@ document.addEventListener('DOMContentLoaded', () => {
           ${col.isToday ? '<div style="font-size: 0.7rem; color: var(--primary); font-weight:700;">今日</div>' : ''}
         </th>
       `).join('')}
+      ${weekSummaryColumns.map(col => `
+        <th class="col-week-header">
+          ${escapeHtml(col.label)}
+        </th>
+      `).join('')}
     `;
 
-    // 3. Separate Tasks: Scheduled (with due_date) vs Unscheduled (without due_date)
+    // 4. Separate Tasks: Scheduled (with due_date) vs Unscheduled (without due_date)
     const scheduledTasks = state.tasks.filter(t => t.due_date && t.due_date.trim() !== '');
     const unscheduledTasks = state.tasks.filter(t => !t.due_date || t.due_date.trim() === '');
 
-    // 4. Render Table Rows for Scheduled Tasks
+    // 5. Render Table Rows for Scheduled Tasks
     scheduleTableBody.innerHTML = '';
 
     if (scheduledTasks.length === 0) {
       scheduleTableBody.innerHTML = `
         <tr>
-          <td colspan="${dateColumns.length + 1}" style="padding: 24px; text-align: center; color: var(--text-muted);">
+          <td colspan="${allColumns.length + 1}" style="padding: 24px; text-align: center; color: var(--text-muted);">
             期限日時が設定されたDoリストタスクがありません。下の「日付指定なしのタスク」から日付を設定してください。
           </td>
         </tr>
@@ -361,13 +399,24 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         `;
 
-        // Date Columns (7 cols)
-        let dateCellsHtml = dateColumns.map(col => {
-          const matches = (taskDateStr === col.dateStr);
+        // Generate Cells for all columns (7 daily cols + 3 week summary cols)
+        let matrixCellsHtml = allColumns.map(col => {
+          let matches = false;
+          let targetDateStr = '';
+          let defaultMarkText = '✓ 実施予定';
+
+          if (col.type === 'day') {
+            matches = (taskDateStr === col.dateStr);
+            targetDateStr = col.dateStr;
+          } else if (col.type === 'week') {
+            matches = (taskDateStr >= col.startDateStr && taskDateStr <= col.endDateStr);
+            targetDateStr = col.startDateStr; // Default to start date of that week when setting
+            defaultMarkText = `✓ 第${col.weekNum}週`;
+          }
 
           if (matches) {
             let badgeClass = 'active';
-            let markText = '✓ 実施予定';
+            let markText = defaultMarkText;
 
             if (task.is_completed) {
               badgeClass = 'completed';
@@ -378,20 +427,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             return `
-              <td class="schedule-cell marked is-${badgeClass}" data-task-id="${task.id}" data-date="${col.dateStr}" title="クリックで完了ステータス切り替え / 編集">
+              <td class="schedule-cell marked is-${badgeClass} ${col.type === 'week' ? 'week-cell' : ''}" data-task-id="${task.id}" data-date="${targetDateStr}" title="クリックで完了ステータス切り替え">
                 <span class="sched-mark-badge ${badgeClass}">${markText}</span>
               </td>
             `;
           } else {
             return `
-              <td class="schedule-cell" data-task-id="${task.id}" data-date="${col.dateStr}" title="この日に実施日を変更">
+              <td class="schedule-cell ${col.type === 'week' ? 'week-cell' : ''}" data-task-id="${task.id}" data-date="${targetDateStr}" title="${col.type === 'week' ? `第${col.weekNum}週の開始日に設定` : 'この日に実施日を変更'}">
                 <span class="sched-cell-empty">+ 設定</span>
               </td>
             `;
           }
         }).join('');
 
-        tr.innerHTML = taskInfoHtml + dateCellsHtml;
+        tr.innerHTML = taskInfoHtml + matrixCellsHtml;
 
         // Add Click Handlers for Schedule Cells
         tr.querySelectorAll('.schedule-cell').forEach(cell => {
@@ -400,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetDateStr = cell.dataset.date;
 
             if (cell.classList.contains('marked')) {
-              // Toggle task completion or edit
+              // Toggle task completion
               toggleTaskCompletion(taskId);
             } else {
               // Assign new due date for task
@@ -413,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 5. Render Unscheduled Tasks Section (日付指定の無いタスク)
+    // 6. Render Unscheduled Tasks Section (日付指定の無いタスク)
     renderUnscheduledTasks(unscheduledTasks, dateColumns);
   }
 

@@ -1,87 +1,107 @@
+/*
+1. カラーパレット変数 (:root / [data-theme="dark"]) の使われ方と役目
+--bg-body / --bg-card / --bg-input: 背景色・カード・入力枠の役目
+--primary / --primary-hover / --primary-light: テーマカラー・アクセント・ボタンホバー時の役目
+--success / --warning / --danger / --info: タスク状態・期限警告・通知バッジの役目
+--priority-high-* / --medium-* / --low-*: 優先度「高・中・低」タグおよびカード左端ラインの役目
+
+2. 各CSSクラスの使われ方と役割（日本語解説）
+.app-header / .brand-section / .view-mode-toggle: ヘッダー・ロゴ・表示切替スイッチの役割
+.stats-container / .stat-card / .progress-bar-fill: ダッシュボード統計および達成率プログレスバーの役割
+.task-form-card / .quick-add-wrapper / .task-input-field: タスク追加フォーム・詳細オプションの役割
+.toolbar-card / .search-input / .pill-btn: 検索・絞り込みフィルターの役割
+.task-card / .custom-checkbox / .badge-*: リスト表示用カード・完了チェック・メタバッジの役割
+.schedule-view-container / .schedule-table / .schedule-cell: スケジュールマトリックス表および実施日マーク・sticky列固定の役割
+.unscheduled-section / .unscheduled-card / .btn-assign-date: 日付指定なしタスク（未定Doリスト）セクションとクイック日付設定ボタンの役割
+@media (max-width: 768px) / @media (max-width: 480px): タブレット・スマートフォン向けレスポンシブ配置調整の役割
+*/
+
+
+
 /* ==========================================================================
-   ToDoList Application - Modern & Responsive Stylesheet
+   ToDoList アプリケーション - モダン＆レスポンシブ スタイルシート
    ========================================================================== */
 
 :root {
-  /* Color Palette - Light Theme */
-  --bg-body: #cce9c4;
-  /* f8fafc */
-  --bg-card: #42dc51;
-  /* ffffff */
-  --bg-card-hover: #f1f5f9;
-  --bg-input: #f8fafc;
-  --bg-dialog: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-subtle: #94a3b8;
-  --border-color: #e2e8f0;
-  --border-focus: #6366f1;
+  /* --- カラーパレット：ライトテーマ（通常モード） --- */
+  --bg-body: #cce9c4;  /* 全体の背景色 */
+  --bg-card: #ffffff;  /* カード・コンテンツエリアの背景色 */
+  --bg-card-hover: #f1f5f9;  /* カード等のホバー時背景色 */
+  --bg-input: #f8fafc;  /* 入力フォーム・検索ボックスの背景色 */
+  --bg-dialog: #ffffff;  /* ダイアログ（モーダル）の背景色 */
+  --text-main: #0f172a;  /* メインテキスト色（高いコントラスト） */
+  --text-muted: #64748b; /* 補足・控えめなテキスト色（サブテキスト・説明等） */
+  --text-subtle: #94a3b8;  /* 薄い・補助的なテキスト色（完了済みタスク等） */
+  --border-color: #e2e8f0;  /* 枠線・区切り線の基本カラー */
+  --border-focus: #6366f1;  /* フォーカス状態の枠線カラー */
 
-  /* Primary & Accent Colors */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --primary-text: #4338ca;
+  /* --- プライマリ・アクセントカラー --- */
+  --primary-hover: #4338ca;  /* プライマリボタンのホバー時カラー */
+  --primary: #4f46e5;  /* 主なアクション・ボタン・強調用テーマカラー */
+  --primary-light: #eef2ff;  /* プライマリカラーの薄い背景色（ハイライト用） */
+  --primary-text: #4338ca;  /* プライマリテーマのテキストカラー */
 
-  /* Status Colors */
-  --success: #10b981;
-  --success-light: #ecfdf5;
-  --warning: #f59e0b;
-  --warning-light: #fffbeb;
-  --danger: #ef4444;
-  --danger-light: #fef2f2;
-  --info: #0ea5e9;
-  --info-light: #f0f9ff;
+  /* --- ステータス・通知用カラー --- */
+  --success: #10b981;  /* 成功・完了用カラー（チェックマーク・完了バッジ） */
+  --success-light: #ecfdf5;  /* 成功用カラーの薄い背景色 */
+  --warning: #f59e0b;  /* 警告・注意用カラー（今日が期限等） */
+  --warning-light: #fffbeb;  /* 警告用カラーの薄い背景色 */
+  --danger: #ef4444;  /* 危険・エラー用カラー（削除・期限切れ等） */
+  --danger-light: #fef2f2;  /* 危険用カラーの薄い背景色 */
+  --info: #0ea5e9;  /* 情報提示用カラー */
+  --info-light: #f0f9ff;  /* 情報提示用カラーの薄い背景色 */
 
-  /* Priority Colors */
-  --priority-high-bg: #fee2e2;
-  --priority-high-text: #b91c1c;
-  --priority-high-border: #fca5a5;
-  --priority-medium-bg: #fef3c7;
-  --priority-medium-text: #b45309;
-  --priority-medium-border: #fcd34d;
-  --priority-low-bg: #e0f2fe;
-  --priority-low-text: #0369a1;
-  --priority-low-border: #bae6fd;
+  /* --- タスク優先度用カラー --- */
+  --priority-high-bg: #fee2e2;  /* 優先度「高」の背景色 */
+  --priority-high-text: #b91c1c;  /* 優先度「高」のテキスト色 */
+  --priority-high-border: #fca5a5;  /* 優先度「高」の枠線色 */
+  --priority-medium-bg: #fef3c7;  /* 優先度「中」の背景色 */
+  --priority-medium-text: #b45309;  /* 優先度「中」のテキスト色 */
+  --priority-medium-border: #fcd34d;  /* 優先度「中」の枠線色 */
+  --priority-low-bg: #e0f2fe;  /* 優先度「低」の背景色 */
+  --priority-low-text: #0369a1;  /* 優先度「低」のテキスト色 */
+  --priority-low-border: #bae6fd;  /* 優先度「低」の枠線色 */
 
-  /* Shadows & Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-full: 9999px;
+  /* --- 角丸 (Border Radius) --- */
+  --radius-sm: 8px;  /* 小さな角丸（ボタン・バッジ等） */
+  --radius-md: 12px;  /* 中程度の角丸（カード・入力枠等） */
+  --radius-lg: 18px;  /* 大きな角丸（ヘッダー・メインカード等） */
+  --radius-full: 9999px;  /* カプセル型・完全な丸（ピルボタン等） */
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  /* --- ドロップシャドウ (Shadows) --- */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);  /* 控えめな影 */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);  /* 中程度の影（カード浮き上がり等） */
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);  /* 大きな影 */
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08);  /* モーダルダイアログ用グラデーション影 */
 
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
+  /* --- トランジション（アニメーション速度） --- */
+  --transition-fast: 0.15s ease;  /* 高速な状態変化用（ボタンホバー等） */
+  --transition-normal: 0.25s ease;  /* 通常の状態変化用（テーマ切り替え等） */
 
+  /* ヘッダー・ロゴ用グラデーション背景 */
   --header-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
 }
 
-/* Dark Theme */
+/* --- カラーパレット：ダークテーマ（ダークモード） --- */
 [data-theme="dark"] {
-  --bg-body: #1a2642;
-  /* 090d16 */
-  --bg-card: #46557a;
-  /* 131b2e */
-  --bg-card-hover: #1c2742;
-  --bg-input: #1a233a;
-  --bg-dialog: #131b2e;
-  --text-main: #f8fafc;
-  /* f8fafc */
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
-  --border-color: #24304f;
-  --border-focus: #818cf8;
+  --bg-body: #1a2642;  /* 全体の背景色（暗色） */
+  --bg-card: #223055;  /* カード・コンテンツエリアの背景色 */
+  --bg-card-hover: #1c2742;  /* カード等のホバー時背景色 */
+  --bg-input: #1a233a;  /* 入力フォーム・検索ボックスの背景色 */
+  --bg-dialog: #131b2e;  /* ダイアログ（モーダル）の背景色 */
+  --text-main: #f8fafc;  /* メインテキスト色（明色） */
+  --text-muted: #94a3b8;  /* 補足・控えめなテキスト色 */
+  --text-subtle: #64748b;  /* 薄い・補助的なテキスト色 */
+  --border-color: #24304f;  /* 枠線・区切り線のカラー */
+  --border-focus: #818cf8;  /* フォーカス状態の枠線カラー */
 
+  /* プライマリテーマカラー */
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --primary-light: rgba(99, 102, 241, 0.15);
   --primary-text: #a5b4fc;
 
+  /* ステータスカラー（ダークモード用調整値） */
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
@@ -91,6 +111,7 @@
   --info: #38bdf8;
   --info-light: rgba(14, 165, 233, 0.15);
 
+  /* 優先度カラー（ダークモード用透過設定） */
   --priority-high-bg: rgba(239, 68, 68, 0.2);
   --priority-high-text: #fca5a5;
   --priority-high-border: rgba(239, 68, 68, 0.4);
@@ -101,6 +122,7 @@
   --priority-low-text: #bae6fd;
   --priority-low-border: rgba(14, 165, 233, 0.4);
 
+  /* 影の設定（ダークモード用） */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
@@ -108,15 +130,17 @@
 }
 
 /* ==========================================================================
-   Base & Reset
+   ベーススタイル＆リセット設定
    ========================================================================== */
 
+/* 全要素のボックスモデルを border-box に統一、デフォルトのマージン・パディングを解除 */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* ページ全体の基本スタイル設定（フォント・背景色・テキスト色・滑らかなテーマ切替アニメーション） */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
   background-color: var(--bg-body);
@@ -127,6 +151,7 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
+/* アプリ全体のメインコンテナ（最大幅960pxで中央揃え配置） */
 .app-container {
   max-width: 960px;
   margin: 0 auto;
@@ -136,9 +161,10 @@ body {
 }
 
 /* ==========================================================================
-   Header & Controls
+   ヘッダーエリア＆操作ボタン
    ========================================================================== */
 
+/* アプリ最上部のヘッダー容器（ロゴ、タイトル、表示切替ボタン、テーマボタンを水平配置） */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -150,12 +176,14 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* ブランドロゴとタイトルをまとめる左側ブロック */
 .brand-section {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* アプリのシンボルロゴアイコン（グラデーション背景と丸角シャドウ） */
 .app-logo {
   width: 42px;
   height: 42px;
@@ -169,6 +197,7 @@ body {
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35);
 }
 
+/* アプリ名メインタイトル (TaskFlow) */
 .brand-section h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -178,17 +207,20 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* アプリのキャッチコピー・サブテキスト */
 .brand-section p {
   font-size: 0.82rem;
   color: var(--text-muted);
 }
 
+/* ヘッダー右側の操作ボタン群（表示切替スイッチ、テーマ切替ボタン）をまとめる領域 */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* 単一アイコン型ボタン（テーマ切り替え用ボタン） */
 .icon-btn {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -203,6 +235,7 @@ body {
   transition: all var(--transition-fast);
 }
 
+/* アイコンボタンホバー時の強調エフェクト */
 .icon-btn:hover {
   background: var(--bg-card-hover);
   border-color: var(--primary);
@@ -211,15 +244,17 @@ body {
 }
 
 /* ==========================================================================
-   Dashboard Stats & Progress
+   ダッシュボード統計カード＆進捗プログレスバー
    ========================================================================== */
 
+/* 4つの統計数値カードを配置するグリッドコンテナ */
 .stats-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
+/* 個々の統計を表示するカード（ホバー時に浮き上がるアニメーション付き） */
 .stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -232,11 +267,13 @@ body {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+/* 統計カードホバー時の浮き上がり効果 */
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
+/* 統計アイコンの丸角バックグラウンド領域 */
 .stat-icon {
   width: 44px;
   height: 44px;
@@ -247,31 +284,37 @@ body {
   font-size: 20px;
 }
 
+/* 総タスク数用のテーマカラー背景アイコン */
 .stat-icon.total {
   background: var(--primary-light);
   color: var(--primary);
 }
 
+/* 未完了タスク用の警告カラー背景アイコン */
 .stat-icon.active {
   background: var(--warning-light);
   color: var(--warning);
 }
 
+/* 完了済みタスク用の成功カラー背景アイコン */
 .stat-icon.completed {
   background: var(--success-light);
   color: var(--success);
 }
 
+/* 期限切れタスク用の危険カラー背景アイコン */
 .stat-icon.overdue {
   background: var(--danger-light);
   color: var(--danger);
 }
 
+/* 統計の数値とラベルをまとめる垂直ブロック */
 .stat-info {
   display: flex;
   flex-direction: column;
 }
 
+/* 強調表示される大きな統計数値 */
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
@@ -279,13 +322,14 @@ body {
   color: var(--text-main);
 }
 
+/* 統計の項目名ラベル */
 .stat-label {
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-/* Progress bar */
+/* 全体のタスク達成率を表示するプログレスカード容器 */
 .progress-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -297,6 +341,7 @@ body {
   gap: 8px;
 }
 
+/* プログレスカードのタイトルと達成率パーセンテージテキスト */
 .progress-header {
   display: flex;
   justify-content: space-between;
@@ -305,6 +350,7 @@ body {
   color: var(--text-main);
 }
 
+/* 進捗バーの外枠レール（背景） */
 .progress-track {
   width: 100%;
   height: 10px;
@@ -314,6 +360,7 @@ body {
   position: relative;
 }
 
+/* 達成率に応じて幅が滑らかに伸びるグラデーション進捗バー本体 */
 .progress-bar-fill {
   height: 100%;
   width: 0%;
@@ -323,9 +370,10 @@ body {
 }
 
 /* ==========================================================================
-   Task Input Box (Creation Form)
+   タスク作成フォーム
    ========================================================================== */
 
+/* タスク作成フォーム全体を包むカード容器 */
 .task-form-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -334,12 +382,14 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* タイトル入力フィールドと追加ボタンを配置するクイック入力行 */
 .quick-add-wrapper {
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
+/* 新規タスク名を入力するメインテキストボックス */
 .task-input-field {
   flex: 1;
   background: var(--bg-input);
@@ -352,11 +402,13 @@ body {
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+/* 入力ボックスにフォーカスが当たった時のリング強調エフェクト */
 .task-input-field:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+/* 「追加する」「保存」等の主要な操作を行うメインボタン */
 .btn-primary {
   background: var(--primary);
   color: #ffffff;
@@ -374,17 +426,19 @@ body {
   white-space: nowrap;
 }
 
+/* メインボタンホバー時のグラデーション強調効果 */
 .btn-primary:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
 }
 
+/* メインボタン押し込み時のリセット効果 */
 .btn-primary:active {
   transform: translateY(0);
 }
 
-/* Form Options Drawer (Category, Priority, Due Date, Notes) */
+/* フォーム詳細設定行（カテゴリ、優先度、期限日時選択） */
 .form-options-row {
   display: flex;
   flex-wrap: wrap;
@@ -395,6 +449,7 @@ body {
   border-top: 1px dashed var(--border-color);
 }
 
+/* オプション要素のラベルと入力フィールドをまとめるグループ */
 .option-group {
   display: flex;
   align-items: center;
@@ -403,6 +458,7 @@ body {
   color: var(--text-muted);
 }
 
+/* フォーム内のセレクトボックス、日付入力、テキストエリアの共通スタイル */
 .form-select,
 .form-date-input,
 .form-textarea {
@@ -416,12 +472,14 @@ body {
   transition: border-color var(--transition-fast);
 }
 
+/* フォーカス時の枠線強調 */
 .form-select:focus,
 .form-date-input:focus,
 .form-textarea:focus {
   border-color: var(--border-focus);
 }
 
+/* メモ詳細の展開/折りたたみ切替テキストボタン */
 .expand-details-btn {
   background: none;
   border: none;
@@ -439,16 +497,19 @@ body {
   text-decoration: underline;
 }
 
+/* メモ詳細入力エリアの折りたたみ容器（デフォルト非表示） */
 .details-extra {
   width: 100%;
   margin-top: 10px;
   display: none;
 }
 
+/* メモ詳細表示状態クラス */
 .details-extra.show {
   display: block;
 }
 
+/* 詳細メモを入力する複数行テキストエリア */
 .form-textarea {
   width: 100%;
   min-height: 60px;
@@ -457,9 +518,10 @@ body {
 }
 
 /* ==========================================================================
-   Filter & Search Toolbar
+   フィルター・検索・並び替えツールバー
    ========================================================================== */
 
+/* ツールバー全体を包むカード容器 */
 .toolbar-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -471,17 +533,20 @@ body {
   gap: 14px;
 }
 
+/* 検索バーと一括アクションボタンを配置する上段行 */
 .search-row {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
+/* 検索入力欄・アイコン・クリアボタンを重ねる位置固定領域 */
 .search-input-wrapper {
   position: relative;
   flex: 1;
 }
 
+/* 検索バー左端の虫眼鏡アイコン */
 .search-icon {
   position: absolute;
   left: 14px;
@@ -492,6 +557,7 @@ body {
   display: flex;
 }
 
+/* リアルタイムタスク検索用のキーワード入力欄 */
 .search-input {
   width: 100%;
   padding: 10px 38px 10px 40px;
@@ -508,6 +574,7 @@ body {
   border-color: var(--border-focus);
 }
 
+/* 検索入力文字列を一括消去する「✕」ボタン */
 .clear-search-btn {
   position: absolute;
   right: 12px;
@@ -521,10 +588,12 @@ body {
   font-size: 14px;
 }
 
+/* 文字列が入力されている時にクリアボタンを表示 */
 .clear-search-btn.show {
   display: block;
 }
 
+/* タスク状態切り替え用のピルボタン群（すべて/未完了/完了済み/今日が期限/期限切れ） */
 .filter-pills {
   display: flex;
   flex-wrap: wrap;
@@ -532,6 +601,7 @@ body {
   align-items: center;
 }
 
+/* カプセル型の状態フィルターボタン */
 .pill-btn {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -552,6 +622,7 @@ body {
   color: var(--text-main);
 }
 
+/* 現在選択中の状態フィルターボタン（アクティブ状態） */
 .pill-btn.active {
   background: var(--primary);
   color: #ffffff;
@@ -559,6 +630,7 @@ body {
   font-weight: 600;
 }
 
+/* ピルボタン内の数値バッジ */
 .pill-badge {
   background: rgba(0, 0, 0, 0.1);
   padding: 1px 6px;
@@ -571,6 +643,7 @@ body {
   color: #ffffff;
 }
 
+/* カテゴリ・優先度・並び替えドロップダウン群の右寄せ配置ブロック */
 .filter-dropdowns {
   display: flex;
   flex-wrap: wrap;
@@ -579,12 +652,14 @@ body {
   margin-left: auto;
 }
 
+/* 一括削除などの一括操作ボタン配置ブロック */
 .batch-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* サブアクション用ボタン（完了済み削除・前週次週移動等に使用） */
 .btn-secondary {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -599,6 +674,7 @@ body {
   gap: 6px;
 }
 
+/* サブボタンホバー時（赤系警告色の強調） */
 .btn-secondary:hover {
   background: var(--danger-light);
   border-color: var(--danger);
@@ -606,15 +682,17 @@ body {
 }
 
 /* ==========================================================================
-   Task List & Cards
+   タスク一覧＆タスクカードスタイル
    ========================================================================== */
 
+/* タスクカードを垂直方向に並べるメインコンテナ */
 .task-list-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* 各タスク情報を表示する個別のカードスタイル（左端に優先度カラーライン配置） */
 .task-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -629,23 +707,26 @@ body {
   overflow: hidden;
 }
 
+/* カードホバー時の浮き上がり・青紫枠線効果 */
 .task-card:hover {
   border-color: rgba(99, 102, 241, 0.4);
   box-shadow: var(--shadow-md);
   transform: translateX(2px);
 }
 
+/* 完了済みタスクカード（半透明・落ち着いた背景色） */
 .task-card.completed {
   opacity: 0.65;
   background: var(--bg-card-hover);
 }
 
+/* 完了済みタスクタイトルの打ち消し線表示 */
 .task-card.completed .task-title {
   text-decoration: line-through;
   color: var(--text-subtle);
 }
 
-/* Priority indicator stripe */
+/* カード左端の優先度表示バーの基準設定 */
 .task-card::before {
   content: "";
   position: absolute;
@@ -655,19 +736,22 @@ body {
   width: 4px;
 }
 
+/* 優先度「高」の左端赤ライン */
 .task-card.priority-high::before {
   background-color: var(--danger);
 }
 
+/* 優先度「中」の左端黄色ライン */
 .task-card.priority-medium::before {
   background-color: var(--warning);
 }
 
+/* 優先度「低」の左端青ライン */
 .task-card.priority-low::before {
   background-color: var(--info);
 }
 
-/* Custom Checkbox */
+/* チェックボックスのデザインカスタマイズ用親要素 */
 .custom-checkbox {
   position: relative;
   display: flex;
@@ -687,6 +771,7 @@ body {
   position: absolute;
 }
 
+/* チェックボックスの外枠ボックス */
 .checkmark {
   width: 22px;
   height: 22px;
@@ -703,11 +788,13 @@ body {
   border-color: var(--primary);
 }
 
+/* チェック済みの緑背景塗りつぶし */
 .custom-checkbox input:checked~.checkmark {
   background-color: var(--success);
   border-color: var(--success);
 }
 
+/* チェックアイコン（チェック時に表示） */
 .checkmark-icon {
   display: none;
   color: #ffffff;
@@ -718,7 +805,7 @@ body {
   display: block;
 }
 
-/* Task Content */
+/* タスク本文エリア（タイトル・詳細説明・メタバッジを垂直配置） */
 .task-body {
   flex: 1;
   display: flex;
@@ -726,6 +813,7 @@ body {
   gap: 6px;
 }
 
+/* タスクのタイトルテキスト（太字） */
 .task-title {
   font-size: 1rem;
   font-weight: 600;
@@ -734,6 +822,7 @@ body {
   line-height: 1.4;
 }
 
+/* タスクの詳細説明・メモ文（改行保持） */
 .task-desc {
   font-size: 0.86rem;
   color: var(--text-muted);
@@ -742,6 +831,7 @@ body {
   word-break: break-word;
 }
 
+/* メタ情報バッジ（カテゴリ、優先度、期限）を配置する行 */
 .task-meta {
   display: flex;
   flex-wrap: wrap;
@@ -750,7 +840,7 @@ body {
   margin-top: 2px;
 }
 
-/* Badges */
+/* 情報表示用小バッジ共通スタイル */
 .badge {
   font-size: 0.74rem;
   font-weight: 600;
@@ -761,36 +851,42 @@ body {
   gap: 4px;
 }
 
+/* カテゴリ名バッジ（グレー枠線） */
 .badge-category {
   background: var(--bg-input);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
 }
 
+/* 優先度「高」バッジ（赤系） */
 .badge-priority-high {
   background: var(--priority-high-bg);
   color: var(--priority-high-text);
   border: 1px solid var(--priority-high-border);
 }
 
+/* 優先度「中」バッジ（黄系） */
 .badge-priority-medium {
   background: var(--priority-medium-bg);
   color: var(--priority-medium-text);
   border: 1px solid var(--priority-medium-border);
 }
 
+/* 優先度「低」バッジ（青系） */
 .badge-priority-low {
   background: var(--priority-low-bg);
   color: var(--priority-low-text);
   border: 1px solid var(--priority-low-border);
 }
 
+/* 期限日時バッジ（基本デザイン） */
 .badge-due {
   background: var(--bg-input);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
 }
 
+/* 期限切れ状態の赤色警告バッジ */
 .badge-due.overdue {
   background: var(--danger-light);
   color: var(--danger);
@@ -798,6 +894,7 @@ body {
   font-weight: 700;
 }
 
+/* 今日が期限状態の黄色注意バッジ */
 .badge-due.today {
   background: var(--warning-light);
   color: var(--warning);
@@ -805,7 +902,7 @@ body {
   font-weight: 700;
 }
 
-/* Task Actions */
+/* カード右端のアクションボタン群（編集・削除） */
 .task-actions {
   display: flex;
   align-items: center;
@@ -814,10 +911,12 @@ body {
   transition: opacity var(--transition-fast);
 }
 
+/* カードホバー時に操作ボタンを鮮明化 */
 .task-card:hover .task-actions {
   opacity: 1;
 }
 
+/* タスク操作用ミニボタン（編集・削除アイコン用） */
 .action-btn {
   background: none;
   border: none;
@@ -837,12 +936,17 @@ body {
   color: var(--text-main);
 }
 
+/* 削除ボタンホバー時の赤色強調 */
 .action-btn.btn-delete:hover {
   background: var(--danger-light);
   color: var(--danger);
 }
 
-/* Empty State */
+/* ==========================================================================
+   空状態（該当タスクなし）の案内表示
+   ========================================================================== */
+
+/* 該当するタスクが無い場合に中央表示される破線囲みの案内領域 */
 .empty-state {
   text-align: center;
   padding: 48px 24px;
@@ -855,6 +959,7 @@ body {
   gap: 12px;
 }
 
+/* 案内領域の丸型アイコンバックグラウンド */
 .empty-icon {
   width: 64px;
   height: 64px;
@@ -867,12 +972,14 @@ body {
   font-size: 28px;
 }
 
+/* 空状態のメッセージ見出し */
 .empty-state h3 {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-main);
 }
 
+/* 空状態の補助説明テキスト */
 .empty-state p {
   font-size: 0.88rem;
   color: var(--text-muted);
@@ -880,9 +987,10 @@ body {
 }
 
 /* ==========================================================================
-   Modal Dialog (`<dialog>`)
+   モーダルダイアログ (`<dialog>` タグスタイル)
    ========================================================================== */
 
+/* タスク編集用モーダルダイアログ枠本体 */
 dialog.modal-dialog {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -896,11 +1004,13 @@ dialog.modal-dialog {
   outline: none;
 }
 
+/* モーダル表示時の背面暗転＆すりガラス（ぼかし）バックドロップエフェクト */
 dialog.modal-dialog::backdrop {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(6px);
 }
 
+/* ダイアログ上部のタイトル＆閉じるボタン行 */
 .dialog-header {
   display: flex;
   justify-content: space-between;
@@ -914,6 +1024,7 @@ dialog.modal-dialog::backdrop {
   font-weight: 700;
 }
 
+/* ダイアログを閉じる「✕」ボタン */
 .close-modal-btn {
   background: none;
   border: none;
@@ -933,6 +1044,7 @@ dialog.modal-dialog::backdrop {
   color: var(--text-main);
 }
 
+/* ダイアログ内のフォーム入力領域 */
 .dialog-body {
   padding: 20px;
   display: flex;
@@ -940,6 +1052,7 @@ dialog.modal-dialog::backdrop {
   gap: 14px;
 }
 
+/* ダイアログ内各フォーム項目の縦並びグループ */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -972,6 +1085,7 @@ dialog.modal-dialog::backdrop {
   border-color: var(--border-focus);
 }
 
+/* ダイアログ最下部の操作ボタン行（キャンセル・保存） */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -982,9 +1096,10 @@ dialog.modal-dialog::backdrop {
 }
 
 /* ==========================================================================
-   Toast Notification System
+   トースト通知システム (Toast Notifications)
    ========================================================================== */
 
+/* 画面右下にトーストメッセージをスタック表示する位置固定コンテナ */
 #toast-container {
   position: fixed;
   bottom: 24px;
@@ -995,6 +1110,7 @@ dialog.modal-dialog::backdrop {
   z-index: 9999;
 }
 
+/* 単一のトーストポップアップ通知メッセージ（スライドイン＆フェードアウトアニメーション付き） */
 .toast {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1011,18 +1127,22 @@ dialog.modal-dialog::backdrop {
   animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
 }
 
+/* 成功通知用（左端の緑色バー） */
 .toast.success {
   border-left: 4px solid var(--success);
 }
 
+/* エラー通知用（左端の赤色バー） */
 .toast.error {
   border-left: 4px solid var(--danger);
 }
 
+/* 情報通知用（左端の青色バー） */
 .toast.info {
   border-left: 4px solid var(--info);
 }
 
+/* 右側からのスライドインアニメーション */
 @keyframes slideIn {
   from {
     transform: translateX(100%);
@@ -1035,6 +1155,7 @@ dialog.modal-dialog::backdrop {
   }
 }
 
+/* 自動消去時の下方向フェードアウトアニメーション */
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -1048,14 +1169,18 @@ dialog.modal-dialog::backdrop {
 }
 
 /* ==========================================================================
-   Responsive Adaptations
+   レスポンシブ対応設定 (Responsive Media Queries)
    ========================================================================== */
 
+/* タブレット・中型画面向けレイアウト調整（768px以下） */
 @media (max-width: 768px) {
+
+  /* 統計カードを4列から2列に変更 */
   .stats-container {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  /* フォームオプション行を縦並びに変更 */
   .form-options-row {
     flex-direction: column;
     align-items: stretch;
@@ -1065,6 +1190,7 @@ dialog.modal-dialog::backdrop {
     margin-left: 0;
   }
 
+  /* フィルターセレクトボックス群を全幅に変更 */
   .filter-dropdowns {
     width: 100%;
     margin-left: 0;
@@ -1075,6 +1201,7 @@ dialog.modal-dialog::backdrop {
   }
 }
 
+/* スマートフォン向けレイアウト調整（480px以下） */
 @media (max-width: 480px) {
   body {
     padding: 12px 8px;
@@ -1088,6 +1215,7 @@ dialog.modal-dialog::backdrop {
     font-size: 1.25rem;
   }
 
+  /* クイック入力欄とボタンを縦並びに変更 */
   .quick-add-wrapper {
     flex-direction: column;
     align-items: stretch;
@@ -1099,9 +1227,10 @@ dialog.modal-dialog::backdrop {
 }
 
 /* ==========================================================================
-   View Mode Switcher & Schedule View Styles
+   表示モード切替スイッチ＆スケジュール表示スタイル
    ========================================================================== */
 
+/* ヘッダー内の表示モード切替スイッチ（リスト / スケジュール）の外枠容器 */
 .view-mode-toggle {
   display: flex;
   background: var(--bg-input);
@@ -1111,6 +1240,7 @@ dialog.modal-dialog::backdrop {
   gap: 2px;
 }
 
+/* 表示モード切替の各ボタン */
 .view-toggle-btn {
   background: transparent;
   border: none;
@@ -1130,19 +1260,21 @@ dialog.modal-dialog::backdrop {
   color: var(--text-main);
 }
 
+/* 現在選択されている表示モードボタンのハイライト状態 */
 .view-toggle-btn.active {
   background: var(--bg-card);
   color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
 
-/* Schedule View Layout */
+/* スケジュール表示全体の垂直レイアウト容器 */
 .schedule-view-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
+/* スケジュール表の上部ナビゲーションバー（日付範囲表示と「前の週」「次週」移動ボタン） */
 .schedule-nav-header {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1156,12 +1288,14 @@ dialog.modal-dialog::backdrop {
   box-shadow: var(--shadow-sm);
 }
 
+/* 日付移動コントロールボタン群（前週、今日、次週） */
 .schedule-date-controls {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+/* 現在表示している日付範囲テキスト（例：2026年8月26日 〜 2026年9月1日）のグラデーションテキスト */
 .schedule-range-label {
   font-weight: 700;
   font-size: 1.05rem;
@@ -1171,7 +1305,7 @@ dialog.modal-dialog::backdrop {
   -webkit-text-fill-color: transparent;
 }
 
-/* Schedule Table */
+/* スケジュールマトリックス表を包むスクロール可能なカード容器 */
 .schedule-table-wrapper {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1180,13 +1314,15 @@ dialog.modal-dialog::backdrop {
   overflow-x: auto;
 }
 
+/* 左にDoリスト、上に日付を配置するスケジュールマトリックス表本体 */
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  min-width: 980px;
   font-size: 0.88rem;
 }
 
+/* スケジュール表のセル共通パディング・格子状枠線 */
 .schedule-table th,
 .schedule-table td {
   padding: 12px 14px;
@@ -1200,6 +1336,7 @@ dialog.modal-dialog::backdrop {
   border-right: none;
 }
 
+/* スケジュール表の見出しセル（背景固定） */
 .schedule-table th {
   background: var(--bg-input);
   color: var(--text-muted);
@@ -1208,6 +1345,7 @@ dialog.modal-dialog::backdrop {
   white-space: nowrap;
 }
 
+/* 左端の見出しセル「Doリスト (タスク名)」（横スクロール時も固定表示する sticky 設定） */
 .schedule-table th.col-task-header {
   text-align: left;
   min-width: 220px;
@@ -1218,20 +1356,42 @@ dialog.modal-dialog::backdrop {
   background: var(--bg-input);
 }
 
+/* 日付列の見出しセル（日付・曜日表示） */
 .schedule-table th.col-date-header {
   min-width: 85px;
 }
 
+/* 「今日」の日付列見出し（テーマカラーでハイライト強調） */
 .schedule-table th.col-date-header.is-today {
   background: var(--primary-light);
   color: var(--primary);
   font-weight: 700;
 }
 
+/* 週まとめ列見出し（第2週〜第4週） */
+.schedule-table th.col-week-header {
+  min-width: 110px;
+  background: rgba(99, 102, 241, 0.05);
+  border-left: 2px solid var(--border-color);
+  color: var(--primary-text);
+  font-weight: 700;
+}
+
+/* 週まとめセル */
+.schedule-cell.week-cell {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.schedule-cell.week-cell:nth-of-type(8) {
+  border-left: 2px solid var(--border-color);
+}
+
+/* スケジュール表の行ホバー時背景変化 */
 .schedule-table tbody tr:hover {
   background-color: var(--bg-card-hover);
 }
 
+/* 左端のタスク情報セル（横スクロール時も左側に固定される sticky 設定） */
 .schedule-table td.cell-task-info {
   text-align: left;
   position: sticky;
@@ -1245,6 +1405,7 @@ dialog.modal-dialog::backdrop {
   background-color: var(--bg-card-hover);
 }
 
+/* スケジュール表内のタスクタイトル */
 .sched-task-title {
   font-weight: 600;
   color: var(--text-main);
@@ -1252,11 +1413,13 @@ dialog.modal-dialog::backdrop {
   word-break: break-word;
 }
 
+/* スケジュール表内の完了済みタスクタイトル（打ち消し線） */
 .sched-task-title.completed {
   text-decoration: line-through;
   color: var(--text-subtle);
 }
 
+/* スケジュール表内のカテゴリ・優先度タグ領域 */
 .sched-task-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1264,29 +1427,34 @@ dialog.modal-dialog::backdrop {
   align-items: center;
 }
 
-/* Schedule Cell Status Mark */
+/* スケジュール表の各日付セル（クリックで実施日変更や完了トグルが可能） */
 .schedule-cell {
   cursor: pointer;
   transition: background-color var(--transition-fast);
   position: relative;
 }
 
+/* 日付セルホバー時のハイライト効果 */
 .schedule-cell:hover {
   background-color: var(--primary-light);
 }
 
+/* 実施予定がマークされている日付セル */
 .schedule-cell.marked {
   background-color: rgba(99, 102, 241, 0.08);
 }
 
+/* 完了済みの実施予定セル（緑系背景） */
 .schedule-cell.marked.is-completed {
   background-color: rgba(16, 185, 129, 0.1);
 }
 
+/* 期限切れの実施予定セル（赤系背景） */
 .schedule-cell.marked.is-overdue {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+/* 日付セル内に表示されるマークバッジ（「✓ 実施予定」「✓ 完了」「⚠️ 期限切れ」） */
 .sched-mark-badge {
   display: inline-flex;
   align-items: center;
@@ -1304,21 +1472,25 @@ dialog.modal-dialog::backdrop {
   transform: scale(1.05);
 }
 
+/* 未完了の実施予定マークバッジ（プライマリカラー背景） */
 .sched-mark-badge.active {
   background: var(--primary);
   color: #ffffff;
 }
 
+/* 完了済みのマークバッジ（緑色背景） */
 .sched-mark-badge.completed {
   background: var(--success);
   color: #ffffff;
 }
 
+/* 期限切れのマークバッジ（赤色背景） */
 .sched-mark-badge.overdue {
   background: var(--danger);
   color: #ffffff;
 }
 
+/* マークが無い空の日付マスに表示されるガイドテキスト（「+ 設定」） */
 .sched-cell-empty {
   color: var(--text-subtle);
   font-size: 0.75rem;
@@ -1326,11 +1498,16 @@ dialog.modal-dialog::backdrop {
   transition: opacity var(--transition-fast);
 }
 
+/* 日付マスホバー時にガイドテキストを表示 */
 .schedule-cell:hover .sched-cell-empty {
   opacity: 0.8;
 }
 
-/* Unscheduled Tasks Section */
+/* ==========================================================================
+   日付指定なしタスクの個別表示セクション (未定のDoリスト)
+   ========================================================================== */
+
+/* 日付指定の無いタスクを個別に表示するカードセクション全体 */
 .unscheduled-section {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1342,12 +1519,14 @@ dialog.modal-dialog::backdrop {
   gap: 14px;
 }
 
+/* 未定タスクセクションのヘッダーバー（タイトルと未定件数バッジ） */
 .unscheduled-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* 「📅 日付指定なしのタスク (未定のDoリスト)」タイトル */
 .unscheduled-title {
   font-weight: 700;
   font-size: 1rem;
@@ -1357,12 +1536,14 @@ dialog.modal-dialog::backdrop {
   gap: 8px;
 }
 
+/* 未定タスクカードを並べるレスポンシブなグリッドコンテナ */
 .unscheduled-tasks-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
 }
 
+/* 個々の未定タスクを表示するミニカード */
 .unscheduled-card {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -1375,22 +1556,26 @@ dialog.modal-dialog::backdrop {
   transition: all var(--transition-fast);
 }
 
+/* 未定タスクカードホバー時の枠線・シャドウ効果 */
 .unscheduled-card:hover {
   border-color: var(--primary);
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
 
+/* 未定タスクカードのヘッダー行（完了チェックボックスとタイトル・タグ） */
 .unscheduled-card-header {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
+/* 未定タスクカードの本文 */
 .unscheduled-card-body {
   flex: 1;
 }
 
+/* 未定タスクのタイトルテキスト */
 .unscheduled-card-title {
   font-weight: 600;
   font-size: 0.94rem;
@@ -1398,6 +1583,7 @@ dialog.modal-dialog::backdrop {
   margin-bottom: 4px;
 }
 
+/* 未定タスクカードの下部アクション行（「今日に設定」ボタンや編集ボタン） */
 .unscheduled-card-actions {
   display: flex;
   align-items: center;
@@ -1408,6 +1594,7 @@ dialog.modal-dialog::backdrop {
   border-top: 1px dashed var(--border-color);
 }
 
+/* タスクに今日の日付を即座に割り当てるクイックボタン */
 .btn-assign-date {
   background: var(--primary-light);
   color: var(--primary);
@@ -1428,6 +1615,7 @@ dialog.modal-dialog::backdrop {
   color: #ffffff;
 }
 
+/* 未定タスクが0件の際に表示される案内テキスト */
 .empty-unscheduled {
   text-align: center;
   color: var(--text-muted);

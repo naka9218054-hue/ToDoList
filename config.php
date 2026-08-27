@@ -10,10 +10,10 @@
  */
 
 return [
-    'host'     => 'mysql3117.db.sakura.ne.jp',
-    'port'     => '3306',
+    'db_host'  => 'mysql3117.db.sakura.ne.jp',
+    'db_port'  => '3306',
     'dbname'   => 'abot_db',
-    'user'     => 'abot_db',
+    'db_user'  => 'abot_db',
     'password' => 'Kenzi_1732',
     'charset'  => 'utf8mb4'
 ];

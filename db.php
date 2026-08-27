@@ -23,7 +23,7 @@ function getDBConnection(): PDO {
     $port     = $rawConfig['port'] ?? $rawConfig['db_port'] ?? '3306';
     $dbname   = $rawConfig['dbname'] ?? $rawConfig['database'] ?? 'todolist_app';
     $user     = $rawConfig['user'] ?? $rawConfig['db_user'] ?? 'root';
-    $password = $rawConfig['password'] ?? $rawConfig['pass'] ?? $rawConfig['db_pass'] ?? '';
+    $password = $rawConfig['password'] ?? $rawConfig['pass'] ?? $rawConfig['db_pass'] ?? 'Kenzi_1732';
     $charset  = $rawConfig['charset'] ?? 'utf8mb4';
 
     // If a full DSN was provided in config

@@ -10,7 +10,7 @@
  */
 
 return [
-    'host'     => 'abot_todolist.db.sakura.ne.jp',
+    'host'     => 'mysql80.abot.sakura.ne.jp',
     'port'     => '3306',
     'dbname'   => 'abot_todolist',
     'user'     => 'abot_todolist',

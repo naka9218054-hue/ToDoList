@@ -58,8 +58,15 @@ function getDBConnection(): PDO {
 
         return $pdo;
     } catch (PDOException $e) {
+        // エラーメッセージとエラーコードを詳しく表示
+        $err_msg  = "【接続失敗】 エラーが発生しました。<br><br>";
+        $err_msg .= "エラーメッセージ: " . $e->getMessage() . "<br>";
+        $err_msg .= "エラーコード: " . $e->getCode() . "<br>";
+
         // API/フロントエンドでの利用向けに、明確なエラー出力を提供する。
-        throw new Exception("MySQL接続エラー: " . $e->getMessage());
+        // throw new Exception("MySQL接続エラー: " . $e->getMessage());
+        throw new Exception($err_msg);
+
     }
 }
 

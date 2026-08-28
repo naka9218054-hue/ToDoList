@@ -15,7 +15,7 @@ return [
     // ------------
     'host'     => 'mysql3117.db.sakura.ne.jp',
     'dbname'   => 'abot_todolist',
-    'user'     => 'abot_todolist',
+    'user'     => 'mysql3117',
     'password' => 'Kenzi_1732',
     // -----------
     'port'     => '3306',

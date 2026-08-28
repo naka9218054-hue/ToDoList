@@ -10,10 +10,10 @@
  */
 
 return [
-    'db_host'  => 'abot_todolist.db.sakura.ne.jp',
-    'db_port'  => '3306',
+    'host'     => 'abot_todolist.db.sakura.ne.jp',
+    'port'     => '3306',
     'dbname'   => 'abot_todolist',
-    'db_user'  => 'abot_todolist',
+    'user'     => 'abot_todolist',
     'password' => 'Kenzi_1732',
     'charset'  => 'utf8mb4'
 ];

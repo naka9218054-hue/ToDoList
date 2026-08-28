@@ -3,6 +3,7 @@
  * Database Configuration
  * MySQL connection settings for ToDoList 
  * データ保存先：さくらデータベース abot_db  
+ * さくらレンタルサーバーでMySqlのデーターベースにphpアプリから接続できません。config.phpの設定方法を教えてください
 
  */
 
@@ -12,8 +13,8 @@ return [
     // 'user'     => 'kenzi',
     // 'password' => 'Kenzi_1732',
     // ------------
-    'host'     => 'mysql80.abot.sakura.ne.jp',
-    'dbname'   => 'mysql80.abot',
+    'host'     => 'mysql3117.sakura.ne.jp',
+    'dbname'   => 'abot_todolist',
     'user'     => 'abot_todolist',
     'password' => 'Kenzi_1732',
     // -----------

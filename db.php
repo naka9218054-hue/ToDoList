@@ -43,8 +43,8 @@ function getDBConnection(): PDO {
 
     try {
         // MySQLサーバーに接続します（データベースが存在することを確認するため、最初にデータベースを選択せず​​に接続します）。
-        $dsnWithoutDB = "mysql:host={$host};port={$port};charset={$charset}";
-        $serverPdo = new PDO($dsnWithoutDB, $user, $password, $options);
+        // $dsnWithoutDB = "mysql:host={$host};port={$port};charset={$charset}";
+        // $serverPdo = new PDO($dsnWithoutDB, $user, $password, $options);
 
         // データベースが存在しない場合は作成します。
         // $serverPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbname}` CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci");

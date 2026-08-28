@@ -13,7 +13,7 @@ return [
     // 'password' => 'Kenzi_1732',
     // ------------
     'host'     => 'mysql80.abot.sakura.ne.jp',
-    'dbname'   => 'mysql80',
+    'dbname'   => 'mysql80.abot',
     'user'     => 'abot_todolist',
     'password' => 'Kenzi_1732',
     // -----------

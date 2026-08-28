@@ -19,20 +19,20 @@ function getDBConnection(): PDO {
     }
 
     // Flexible key mapping
-    $host     = $rawConfig['host'] ?? $rawConfig['db_host'] ?? 'localhost';
-    $port     = $rawConfig['port'] ?? $rawConfig['db_port'] ?? '3306';
-    $dbname   = $rawConfig['dbname'] ?? $rawConfig['database'] ?? 'todolist_app';
-    $user     = $rawConfig['user'] ?? $rawConfig['db_user'] ?? 'root';
-    $password = $rawConfig['password'] ?? $rawConfig['pass'] ?? $rawConfig['db_pass'] ?? 'Kenzi_1732';
-    $charset  = $rawConfig['charset'] ?? 'utf8mb4';
+    $host     = $rawConfig['host']; // ?? $rawConfig['db_host'] ?? 'localhost';
+    $port     = $rawConfig['port']; // ?? $rawConfig['db_port'] ?? '3306';
+    $dbname   = $rawConfig['dbname']; // ?? $rawConfig['database'] ?? 'todolist_app';
+    $user     = $rawConfig['user']; // ?? $rawConfig['db_user'] ?? 'root';
+    $password = $rawConfig['password']; // ?? $rawConfig['pass'] ?? $rawConfig['db_pass'] ?? 'Kenzi_1732';
+    $charset  = $rawConfig['charset']; // ?? 'utf8mb4';
 
     // If a full DSN was provided in config
-    if (!empty($rawConfig['dsn'])) {
-        if (preg_match('/host=([^;]+)/', $rawConfig['dsn'], $m)) $host = $m[1];
-        if (preg_match('/port=([^;]+)/', $rawConfig['dsn'], $m)) $port = $m[1];
-        if (preg_match('/dbname=([^;]+)/', $rawConfig['dsn'], $m)) $dbname = $m[1];
-        if (preg_match('/charset=([^;]+)/', $rawConfig['dsn'], $m)) $charset = $m[1];
-    }
+    // if (!empty($rawConfig['dsn'])) {
+    //     if (preg_match('/host=([^;]+)/', $rawConfig['dsn'], $m)) $host = $m[1];
+    //     if (preg_match('/port=([^;]+)/', $rawConfig['dsn'], $m)) $port = $m[1];
+    //     if (preg_match('/dbname=([^;]+)/', $rawConfig['dsn'], $m)) $dbname = $m[1];
+    //     if (preg_match('/charset=([^;]+)/', $rawConfig['dsn'], $m)) $charset = $m[1];
+    // }
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -42,23 +42,23 @@ function getDBConnection(): PDO {
     ];
 
     try {
-        // Step 1: Connect to MySQL server (without selecting DB first, to ensure DB exists)
+        // MySQLサーバーに接続します（データベースが存在することを確認するため、最初にデータベースを選択せず​​に接続します）。
         $dsnWithoutDB = "mysql:host={$host};port={$port};charset={$charset}";
         $serverPdo = new PDO($dsnWithoutDB, $user, $password, $options);
 
-        // Step 2: Create database if it does not exist
-        $serverPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbname}` CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci");
+        // データベースが存在しない場合は作成します。
+        // $serverPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbname}` CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci");
 
-        // Step 3: Connect to the specific database
+        // 特定のデータベースに接続します
         $dsnWithDB = "mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}";
         $pdo = new PDO($dsnWithDB, $user, $password, $options);
 
-        // Step 4: Ensure tables exist
+        // テーブルが存在することを確認する
         initializeTables($pdo);
 
         return $pdo;
     } catch (PDOException $e) {
-        // Provide clear error output for API / frontend consumption
+        // API/フロントエンドでの利用向けに、明確なエラー出力を提供する。
         throw new Exception("MySQL接続エラー: " . $e->getMessage());
     }
 }

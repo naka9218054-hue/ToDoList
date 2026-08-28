@@ -8,15 +8,15 @@
  */
 
 return [
-    // 'host'     => 'localhost',
-    // 'dbname'   => 'todolist_app',
-    // 'user'     => 'kenzi',
-    // 'password' => 'Kenzi_1732',
-    // ------------
-    'host'     => 'mysql3117.db.sakura.ne.jp',
-    'dbname'   => 'abot_todolist',
-    'user'     => 'abot_todolist',
+    'host'     => 'localhost',
+    'dbname'   => 'todolist_app',
+    'user'     => 'kenzi',
     'password' => 'Kenzi_1732',
+    // ------------
+    // 'host'     => 'mysql3117.db.sakura.ne.jp',
+    // 'dbname'   => 'abot_todolist',
+    // 'user'     => 'abot_todolist',
+    // 'password' => 'Kenzi_1732',
     // -----------
     'port'     => '3306',
     'charset'  => 'utf8mb4'

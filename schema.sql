@@ -1,10 +1,4 @@
--- ToDoList MySQL Database Schema
-
--- CREATE DATABASE IF NOT EXISTS `abot_db` 
--- CHARACTER SET utf8mb4 
--- COLLATE utf8mb4_unicode_ci;
-
--- USE `todolist_app`;
+USE `abot_todolist`;
 
 -- Categories Table
 CREATE TABLE IF NOT EXISTS `categories` (
@@ -32,12 +26,4 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     INDEX `idx_priority` (`priority`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert default categories if table is empty
--- INSERT IGNORE INTO 'categories' ('name', 'color') VALUES
--- ('仕事', '#3b82f6'),
--- ('プライベート', '#10b981'),
--- ('買い物', '#f59e0b'),
--- ('学習', '#8b5cf6'),
--- ('健康', '#ec4899'),
--- ('一般', '#64748b');
 

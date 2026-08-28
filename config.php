@@ -12,8 +12,8 @@
 return [
     'db_host'  => 'mysql3117.db.sakura.ne.jp',
     'db_port'  => '3306',
-    'dbname'   => 'abot_db',
-    'db_user'  => 'abot_db',
+    'dbname'   => 'abot_todolist',
+    'db_user'  => 'abot_todolist',
     'password' => 'Kenzi_1732',
     'charset'  => 'utf8mb4'
 ];

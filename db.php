@@ -62,10 +62,11 @@ function getDBConnection(): PDO {
         $err_msg  = "【接続失敗】 エラーが発生しました。<br><br>";
         $err_msg .= "エラーメッセージ: " . $e->getMessage() . "<br>";
         $err_msg .= "エラーコード: " . $e->getCode() . "<br>";
+        echo ($err_msg);
 
         // API/フロントエンドでの利用向けに、明確なエラー出力を提供する。
-        // throw new Exception("MySQL接続エラー: " . $e->getMessage());
-        throw new Exception($err_msg);
+        throw new Exception("MySQL接続エラー: " . $e->getMessage());
+        // throw new Exception($err_msg);
 
     }
 }

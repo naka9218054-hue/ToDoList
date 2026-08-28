@@ -11,6 +11,7 @@ function getDBConnection(): PDO {
         return $pdo;
     }
 
+    // 環境（ローカル / さくらサーバー）を自動判定する config.php を読み込み
     $rawConfig = require __DIR__ . '/config.php';
 
     // Support both `return [...]` array and `const config = [...]`
@@ -37,8 +38,8 @@ function getDBConnection(): PDO {
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false
-        // PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$charset}"
+        PDO::ATTR_EMULATE_PREPARES   => false,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$charset}"
     ];
 
     try {

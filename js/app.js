@@ -1,93 +1,111 @@
 /**
- * ToDoList Application - Modern Vanilla JS
- * Handles UI interactions, Fetch API calls, state, and rendering
+ * ToDoList アプリケーション - モダン Vanilla JavaScript (ピュアJS)
+ * 画面のUI操作、Fetch APIによる通信、アプリケーションの状態管理(State)、
+ * およびリスト表示・スケジュール表示のレンダリング処理を一括管理します。
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // App State
+  // --------------------------------------------------------------------------
+  // アプリケーション全体の centralized state（状態管理オブジェクト）
+  // --------------------------------------------------------------------------
   const state = {
-    filter: 'all',          // all | active | completed | today | overdue
-    category: 'all',
-    priority: 'all',
-    sort: 'created_desc',
-    searchQuery: '',
-    viewMode: 'list',       // list | schedule
-    scheduleOffsetDays: 0,  // Offset from today for schedule week view
-    categories: [],
-    tasks: []
+    filter: 'all',          // タスクフィルター状態: all (すべて) | active (未完了) | completed (完了済み) | today (今日が期限) | overdue (期限切れ)
+    category: 'all',        // カテゴリフィルター: all (すべてのカテゴリ) または特定のカテゴリ名
+    priority: 'all',        // 優先度フィルター: all (すべての優先度) | high (高) | medium (中) | low (低)
+    sort: 'created_desc',   // ソート順序: created_desc (作成日降順) | created_asc (作成日昇順) | due_asc (期限昇順) | due_desc (期限降順) | priority (優先度順) | title_asc (タイトル名順)
+    searchQuery: '',        // 検索キーワード文字列
+    viewMode: 'list',       // メイン表示モード: list (標準リスト表示) | schedule (4週間スケジュールマトリックス表示)
+    scheduleOffsetDays: 0,  // スケジュール表示の基準日オフセット（0: 今週基準, ±7: 前後の週へ移動）
+    categories: [],         // サーバーから取得したカテゴリ一覧データ
+    tasks: []               // サーバーから取得したタスク一覧データ
   };
 
-  // DOM Elements
-  const themeToggleBtn = document.getElementById('theme-toggle');  // トグルボタン
-  const viewModeListBtn = document.getElementById('view-mode-list');
-  const viewModeScheduleBtn = document.getElementById('view-mode-schedule');
-  const scheduleViewContainer = document.getElementById('schedule-view-container');
+  // --------------------------------------------------------------------------
+  // DOMエレメントの参照保持（パフォーマンス向上のため初期化時に一括取得）
+  // --------------------------------------------------------------------------
+  // ヘッダー・表示切り替え・テーマ切り替え関連要素
+  const themeToggleBtn = document.getElementById('theme-toggle');        // ダーク/ライトテーマ切り替えボタン
+  const viewModeListBtn = document.getElementById('view-mode-list');      // リスト表示モード切り替えボタン
+  const viewModeScheduleBtn = document.getElementById('view-mode-schedule'); // スケジュール表示モード切り替えボタン
+  const scheduleViewContainer = document.getElementById('schedule-view-container'); // スケジュール表示全体のコンテナ
 
-  const schedPrevWeekBtn = document.getElementById('sched-prev-week');
-  const schedNextWeekBtn = document.getElementById('sched-next-week');
-  const schedTodayBtn = document.getElementById('sched-today');
-  const scheduleRangeLabel = document.getElementById('schedule-range-label');
-  const scheduleTableHeader = document.getElementById('schedule-table-header');
-  const scheduleTableBody = document.getElementById('schedule-table-body');
-  const unscheduledCountBadge = document.getElementById('unscheduled-count-badge');
-  const unscheduledTasksList = document.getElementById('unscheduled-tasks-list');
+  // スケジュール表示のナビゲーションおよびテーブル関連要素
+  const schedPrevWeekBtn = document.getElementById('sched-prev-week');         // スケジュール前週移動ボタン
+  const schedNextWeekBtn = document.getElementById('sched-next-week');         // スケジュール次週移動ボタン
+  const schedTodayBtn = document.getElementById('sched-today');               // スケジュール今週（今日）復帰ボタン
+  const scheduleRangeLabel = document.getElementById('schedule-range-label');   // スケジュール表示期間ラベル（例: 2026年8月29日〜2026年9月25日 (4週間)）
+  const scheduleTableHeader = document.getElementById('schedule-table-header'); // スケジュールマトリックスのヘッダー行 (tr)
+  const scheduleTableBody = document.getElementById('schedule-table-body');   // スケジュールマトリックスのボディ (tbody)
+  const unscheduledCountBadge = document.getElementById('unscheduled-count-badge'); // 日付指定なしタスク件数バッジ
+  const unscheduledTasksList = document.getElementById('unscheduled-tasks-list'); // 日付指定なしタスクカード設置エリア
 
-  const taskForm = document.getElementById('task-form');
-  const taskTitleInput = document.getElementById('task-title-input');
-  const taskCategorySelect = document.getElementById('task-category-select');
-  const taskPrioritySelect = document.getElementById('task-priority-select');
-  const taskDueDateInput = document.getElementById('task-due-date-input');
-  const taskDescInput = document.getElementById('task-desc-input');
-  const toggleDetailsBtn = document.getElementById('toggle-details-btn');
-  const detailsExtra = document.getElementById('details-extra');
+  // タスク新規登録フォーム関連要素
+  const taskForm = document.getElementById('task-form');                         // タスク作成フォーム
+  const taskTitleInput = document.getElementById('task-title-input');             // タスクタイトル入力欄
+  const taskCategorySelect = document.getElementById('task-category-select');     // カテゴリ選択セレクトボックス
+  const taskPrioritySelect = document.getElementById('task-priority-select');     // 優先度選択セレクトボックス
+  const taskDueDateInput = document.getElementById('task-due-date-input');         // 期限日時入力欄
+  const taskDescInput = document.getElementById('task-desc-input');               // タスク詳細メモ入力欄
+  const toggleDetailsBtn = document.getElementById('toggle-details-btn');         // 詳細メモ入力展開/折りたたみボタン
+  const detailsExtra = document.getElementById('details-extra');                 // 詳細メモの折りたたみ枠コンテナ
 
-  const searchInput = document.getElementById('search-input');
-  const clearSearchBtn = document.getElementById('clear-search-btn');
-  const filterPills = document.querySelectorAll('.pill-btn');
-  const filterCategorySelect = document.getElementById('filter-category-select');
-  const filterPrioritySelect = document.getElementById('filter-priority-select');
-  const sortSelect = document.getElementById('sort-select');
-  const clearCompletedBtn = document.getElementById('clear-completed-btn');
+  // 検索・フィルター・並び替え関連要素
+  const searchInput = document.getElementById('search-input');                   // キーワード検索入力欄
+  const clearSearchBtn = document.getElementById('clear-search-btn');             // 検索キーワードクリアボタン
+  const filterPills = document.querySelectorAll('.pill-btn');                     // ステータスフィルターピルボタン群
+  const filterCategorySelect = document.getElementById('filter-category-select'); // 絞り込みカテゴリセレクトボックス
+  const filterPrioritySelect = document.getElementById('filter-priority-select'); // 絞り込み優先度セレクトボックス
+  const sortSelect = document.getElementById('sort-select');                     // ソート順セレクトボックス
+  const clearCompletedBtn = document.getElementById('clear-completed-btn');       // 完了済み一括削除ボタン
 
-  const taskListContainer = document.getElementById('task-list-container');
-  const emptyState = document.getElementById('empty-state');
+  // メイン一覧・空状態表示関連要素
+  const taskListContainer = document.getElementById('task-list-container');       // 標準リスト表示のタスクカード設置コンテナ
+  const emptyState = document.getElementById('empty-state');                     // 該当タスクなし時の空状態案内表示
 
-  // Stats Elements
-  const statTotal = document.getElementById('stat-total');
-  const statActive = document.getElementById('stat-active');
-  const statCompleted = document.getElementById('stat-completed');
-  const statOverdue = document.getElementById('stat-overdue');
-  const progressText = document.getElementById('progress-text');
-  const progressBarFill = document.getElementById('progress-bar-fill');
+  // ダッシュボード統計および進捗バー関連要素
+  const statTotal = document.getElementById('stat-total');           // 総タスク数カウンター
+  const statActive = document.getElementById('stat-active');         // 未完了タスク数カウンター
+  const statCompleted = document.getElementById('stat-completed');   // 完了済みタスク数カウンター
+  const statOverdue = document.getElementById('stat-overdue');       // 期限切れタスク数カウンター
+  const progressText = document.getElementById('progress-text');     // 進捗率テキスト表示 (例: "75% 達成")
+  const progressBarFill = document.getElementById('progress-bar-fill'); // 進捗バーのプログレスフィルの幅設定
 
-  // Edit Modal Elements
-  const editModal = document.getElementById('edit-modal');
-  const editForm = document.getElementById('edit-form');
-  const editTaskId = document.getElementById('edit-task-id');
-  const editTitle = document.getElementById('edit-task-title');
-  const editDescription = document.getElementById('edit-task-desc');
-  const editCategory = document.getElementById('edit-task-category');
-  const editPriority = document.getElementById('edit-task-priority');
-  const editDueDate = document.getElementById('edit-task-due-date');
-  const editCompleted = document.getElementById('edit-task-completed');
-  const closeEditModalBtn = document.getElementById('close-edit-modal-btn');
-  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+  // タスク編集用モーダルダイアログ関連要素
+  const editModal = document.getElementById('edit-modal');               // 編集用 HTML <dialog> 要素
+  const editForm = document.getElementById('edit-form');                 // モーダル内編集フォーム
+  const editTaskId = document.getElementById('edit-task-id');             // 編集対象のタスクID（非表示フィールド）
+  const editTitle = document.getElementById('edit-task-title');           // 編集用タイトル入力欄
+  const editDescription = document.getElementById('edit-task-desc');     // 編集用詳細メモ入力欄
+  const editCategory = document.getElementById('edit-task-category');     // 編集用カテゴリセレクトボックス
+  const editPriority = document.getElementById('edit-task-priority');     // 編集用優先度セレクトボックス
+  const editDueDate = document.getElementById('edit-task-due-date');       // 編集用期限日時入力欄
+  const editCompleted = document.getElementById('edit-task-completed');   // 編集用完了フラグチェックボックス
+  const closeEditModalBtn = document.getElementById('close-edit-modal-btn'); // モーダル閉じる「✕」ボタン
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');       // モーダル「キャンセル」ボタン
 
-  // DB Error Alert Banner
-  const dbAlertBanner = document.getElementById('db-alert-banner');
-  const dbErrorMessage = document.getElementById('db-error-message');
+  // データベース接続エラー警告バナー関連要素
+  const dbAlertBanner = document.getElementById('db-alert-banner');     // DBエラー警告バナー
+  const dbErrorMessage = document.getElementById('db-error-message');   // DBエラー詳細メッセージ表示部
 
   // --------------------------------------------------------------------------
-  // 1. Theme Management
-  //  クリックイベントで data-theme 属性を切り替え、localStorage に保存して
-  //  次回訪問時にもテーマを維持するロジックです。
+  // 1. テーマ管理機能 (Theme Management)
+  //  クリックイベントで `data-theme` 属性（dark / light）を切り替え、
+  //  localStorage にテーマ設定を保存して次回訪問時にも設定を保持します。
   // --------------------------------------------------------------------------
+  /**
+   * テーマの初期化処理
+   * localStorage に保存されたテーマ設定またはOSのシステムカラー設定を参照します。
+   */
   function initTheme() {
     const savedTheme = localStorage.getItem('todo_theme') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setTheme(savedTheme);
   }
 
+  /**
+   * 指定されたテーマ（'dark' または 'light'）をドキュメントルートに適用し、ボタンのアイコンを更新します。
+   * @param {string} theme - 適用するテーマ名
+   */
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('todo_theme', theme);
@@ -98,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // テーマ切り替えボタンのクリックイベントリスナー設定
   if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -106,8 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 2. Toast Notifications
+  // 2. トースト通知表示機能 (Toast Notifications)
+  //  画面右下に成功・エラー・情報メッセージをスタック形式で一時表示します。
   // --------------------------------------------------------------------------
+  /**
+   * トーストポップアップメッセージを表示します。
+   * @param {string} message - 表示するメッセージ
+   * @param {'info'|'success'|'error'} type - 通知の種類（スタイリングとアイコンに反映）
+   */
   function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -127,14 +152,23 @@ document.addEventListener('DOMContentLoaded', () => {
     toast.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
     container.appendChild(toast);
 
+    // 3秒後にアニメーションを終了して要素を自動削除
     setTimeout(() => {
       if (toast.parentNode) toast.remove();
     }, 3000);
   }
 
   // --------------------------------------------------------------------------
-  // 3. API Communication Helper
+  // 3. API 通信ヘルパー関数 (API Communication Helper)
+  //  Fetch API による JSON データ送受信、エラーハンドリング、DBエラー表示を一括処理
   // --------------------------------------------------------------------------
+  /**
+   * サーバーの api.php へ非同期リクエストを送信する共通関数
+   * @param {string} endpoint - 通信先エンドポイントのURL
+   * @param {string} method - HTTPメソッド ('GET' | 'POST' | 'PUT' など)
+   * @param {Object|null} data - POST/PUT 時に送信するデータオブジェクト
+   * @returns {Promise<Object>} サーバーからのレスポンスオブジェクト
+   */
   async function apiRequest(endpoint, method = 'GET', data = null) {
     try {
       const options = {
@@ -153,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const json = await res.json();
 
       if (!res.ok || !json.success) {
+        // データベース接続エラー等のヒントが存在する場合は上部のアラートバナーを表示
         if (json.hint && dbAlertBanner && dbErrorMessage) {
           dbErrorMessage.innerText = `${json.error || 'エラー'} (${json.hint})`;
           dbAlertBanner.style.display = 'block';
@@ -160,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(json.error || 'リクエストの処理中にエラーが発生しました。');
       }
 
+      // 正常レスポンス時はエラーバナーを非表示にする
       if (dbAlertBanner) dbAlertBanner.style.display = 'none';
       return json;
     } catch (err) {
@@ -170,8 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 4. Data Loading & Stats
+  // 4. データ読み込み＆ダッシュボード統計更新 (Data Loading & Stats)
   // --------------------------------------------------------------------------
+  /**
+   * サーバーからカテゴリ一覧を取得し、各ドロップダウンの選択肢を更新します。
+   */
   async function fetchCategories() {
     try {
       const res = await apiRequest('api.php?action=categories');
@@ -180,28 +219,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCategoryOptions();
       }
     } catch (e) {
-      // Handled in apiRequest
+      // エラー処理は apiRequest 内で統一実行
     }
   }
 
+  /**
+   * カテゴリ選択用の各 `<select>` ドロップダウン（新規作成、フィルター、モーダル編集）の選択肢を描画します。
+   */
   function renderCategoryOptions() {
     const defaultOptions = ['一般', '仕事', 'プライベート', '買い物', '学習', '健康'];
     const currentList = state.categories.length ? state.categories.map(c => c.name) : defaultOptions;
 
-    // Quick Add Select
+    // クイック追加フォーム用カテゴリセレクトボックス
     const currentSelected = taskCategorySelect.value;
     taskCategorySelect.innerHTML = currentList.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
     if (currentList.includes(currentSelected)) taskCategorySelect.value = currentSelected;
 
-    // Filter Select
+    // 絞り込みフィルター用カテゴリセレクトボックス
     filterCategorySelect.innerHTML = `<option value="all">すべてのカテゴリ</option>` +
       currentList.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
     if (state.category !== 'all') filterCategorySelect.value = state.category;
 
-    // Modal Select
+    // モーダル編集用カテゴリセレクトボックス
     editCategory.innerHTML = currentList.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
   }
 
+  /**
+   * サーバーからダッシュボード用統計データ（総件数・未完了・完了・期限切れ・進捗率）を取得して表示を更新します。
+   */
   async function fetchStats() {
     try {
       const res = await apiRequest('api.php?action=stats');
@@ -217,10 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBarFill.style.width = `${rate}%`;
       }
     } catch (e) {
-      // Handled in apiRequest
+      // エラー処理は apiRequest 内で統一実行
     }
   }
 
+  /**
+   * 現在の state 条件（フィルター、カテゴリ、優先度、ソート順、検索語）に基づいてサーバーからタスク一覧を取得します。
+   */
   async function fetchTasks() {
     const params = new URLSearchParams({
       action: 'list',
@@ -238,13 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTasks();
       }
     } catch (e) {
-      // Handled in apiRequest
+      // エラー処理は apiRequest 内で統一実行
     }
   }
 
   // --------------------------------------------------------------------------
-  // 5. Task List & Schedule Rendering
+  // 5. タスク一覧およびスケジュール表示のレンダリング (Task List & Schedule Rendering)
   // --------------------------------------------------------------------------
+  /**
+   * 現在の viewMode（'list' または 'schedule'）に応じて適切な画面表示を切り替えます。
+   */
   function renderTasks() {
     if (state.viewMode === 'schedule') {
       taskListContainer.style.display = 'none';
@@ -257,6 +308,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * 標準リスト表示モードのタスクカード描画処理
+   */
   function renderListView() {
     taskListContainer.innerHTML = '';
 
@@ -274,12 +328,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 5b. Schedule Matrix View Rendering (左にDoリスト、上に日付(第1週) + 第2・3・4週まとめのTable)
+  // 5b. スケジュールマトリックス描画処理 (Schedule Matrix View Rendering)
+  //  左側にDoリスト(タスク名)、上部に第1週(日付ごと7列) + 第2・3・4週のまとめ(3列)を表示
   // --------------------------------------------------------------------------
+  /**
+   * スケジュール表示（4週間マトリックスおよび日付指定なしタスク一覧）を描画します。
+   */
   function renderScheduleView() {
     emptyState.style.display = 'none';
 
-    // 1. Calculate 7 daily dates for Week 1 based on scheduleOffsetDays
+    // 1. scheduleOffsetDays に基づいて第1週目の7日間（個別日付）を算出
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -287,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startDate.setDate(startDate.getDate() + state.scheduleOffsetDays);
 
     const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-    const dateColumns = []; // Array of 7 daily columns
+    const dateColumns = []; // 第1週目・日別7列のオブジェクト配列
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(startDate);
@@ -310,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 2. Calculate summary columns for Week 2, Week 3, and Week 4
+    // 2. 第2週、第3週、第4週のまとめ列（各7日間の範囲まとめ）を算出
     const weekSummaryColumns = [];
     for (let w = 2; w <= 4; w++) {
       const wStart = new Date(startDate);
@@ -334,20 +392,21 @@ document.addEventListener('DOMContentLoaded', () => {
         weekNum: w,
         startDateStr: formatYMD(wStart),
         endDateStr: formatYMD(wEnd),
-        label: `第${w}週 (${startMD}〜${endMD})`
+        // label: `第${w}週 (${startMD}〜${endMD})`　/* 第２−４週の日付消去    */
+        label: `第${w}週`
       });
     }
 
-    // Combine all columns (7 days + 3 weekly summaries)
+    // 全10列（日別7列 + 週まとめ3列）を結合
     const allColumns = [...dateColumns, ...weekSummaryColumns];
 
-    // Update Schedule Range Label Header
+    // スケジュール表示期間のラベルテキストを更新（例: 2026年8月29日 〜 2026年9月25日 (4週間)）
     const firstCol = dateColumns[0];
     const lastWeekCol = weekSummaryColumns[weekSummaryColumns.length - 1];
     const lastWeekEndDate = new Date(lastWeekCol.endDateStr);
     scheduleRangeLabel.textContent = `${firstCol.dateObj.getFullYear()}年${firstCol.dateObj.getMonth() + 1}月${firstCol.dateObj.getDate()}日 〜 ${lastWeekEndDate.getMonth() + 1}月${lastWeekEndDate.getDate()}日 (4週間)`;
 
-    // 3. Render Table Header
+    // 3. テーブルヘッダー (th) を動的に生成
     scheduleTableHeader.innerHTML = `
       <th class="col-task-header">Doリスト (タスク名)</th>
       ${dateColumns.map(col => `
@@ -363,11 +422,11 @@ document.addEventListener('DOMContentLoaded', () => {
       `).join('')}
     `;
 
-    // 4. Separate Tasks: Scheduled (with due_date) vs Unscheduled (without due_date)
+    // 4. タスクを「期限日時あり（マトリックス表示対象）」と「期限日時なし（未定リスト対象）」に分類
     const scheduledTasks = state.tasks.filter(t => t.due_date && t.due_date.trim() !== '');
     const unscheduledTasks = state.tasks.filter(t => !t.due_date || t.due_date.trim() === '');
 
-    // 5. Render Table Rows for Scheduled Tasks
+    // 5. 期限日時ありタスクのテーブル行 (tr) をレンダリング
     scheduleTableBody.innerHTML = '';
 
     if (scheduledTasks.length === 0) {
@@ -382,13 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
       scheduledTasks.forEach(task => {
         const tr = document.createElement('tr');
 
-        // Task Date (YYYY-MM-DD)
+        // タスクの日付文字列 (YYYY-MM-DD)
         const taskDateStr = task.due_date ? task.due_date.split(' ')[0] : '';
 
-        // Priority Badge HTML
+        // 優先度バッジのラベルマッピング
         const priorityLabels = { high: '高', medium: '中', low: '低' };
 
-        // Left Column: Task Info
+        // 左端列: タスク名およびメタ情報（カテゴリ・優先度）
         let taskInfoHtml = `
           <td class="cell-task-info">
             <div class="sched-task-title ${task.is_completed ? 'completed' : ''}">${escapeHtml(task.title)}</div>
@@ -399,19 +458,20 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
         `;
 
-        // Generate Cells for all columns (7 daily cols + 3 week summary cols)
+        // 全10列分（日別7列 + 週まとめ3列）のセル HTML を生成
         let matrixCellsHtml = allColumns.map(col => {
           let matches = false;
           let targetDateStr = '';
-          let defaultMarkText = '✓ 実施予定';
+          let defaultMarkText = '◎';
 
           if (col.type === 'day') {
             matches = (taskDateStr === col.dateStr);
             targetDateStr = col.dateStr;
           } else if (col.type === 'week') {
             matches = (taskDateStr >= col.startDateStr && taskDateStr <= col.endDateStr);
-            targetDateStr = col.startDateStr; // Default to start date of that week when setting
-            defaultMarkText = `✓ 第${col.weekNum}週`;
+            targetDateStr = col.startDateStr; // クリックで日付を設定する場合、その週の開始日をデフォルトに設定
+            // defaultMarkText = `✓ 第${col.weekNum}週`;
+            defaultMarkText = `◎`;
           }
 
           if (matches) {
@@ -442,17 +502,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tr.innerHTML = taskInfoHtml + matrixCellsHtml;
 
-        // Add Click Handlers for Schedule Cells
+        // スケジュールマトリックスの各セルにクリックイベントを設定
         tr.querySelectorAll('.schedule-cell').forEach(cell => {
           cell.addEventListener('click', () => {
             const taskId = parseInt(cell.dataset.taskId, 10);
             const targetDateStr = cell.dataset.date;
 
             if (cell.classList.contains('marked')) {
-              // Toggle task completion
+              // 既にマークされているセルの場合: タスクの完了/未完了ステータスをトグル切り替え
               toggleTaskCompletion(taskId);
             } else {
-              // Assign new due date for task
+              // 空のセルの場合: クリックした日付（または週の開始日）に実施日を変更割り当て
               assignTaskDueDate(taskId, targetDateStr);
             }
           });
@@ -462,11 +522,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 6. Render Unscheduled Tasks Section (日付指定の無いタスク)
+    // 6. 日付指定なしタスク（未定のDoリスト）セクションを描画
     renderUnscheduledTasks(unscheduledTasks, dateColumns);
   }
 
-  // Render Unscheduled Tasks
+  /**
+   * 日付指定の無いタスク一覧（カード表示）を描画します。
+   * @param {Array} unscheduledTasks - 日付未設定のタスク配列
+   * @param {Array} dateColumns - 表示中の日付列情報（「今日」の日付特定用）
+   */
   function renderUnscheduledTasks(unscheduledTasks, dateColumns) {
     unscheduledCountBadge.textContent = `${unscheduledTasks.length}件`;
     unscheduledTasksList.innerHTML = '';
@@ -516,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      // Event listeners
+      // イベントリスナーの追加
       const checkbox = card.querySelector('.task-checkbox');
       checkbox.addEventListener('change', () => toggleTaskCompletion(task.id));
 
@@ -530,12 +594,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Quick Date Setter for Task
+  /**
+   * 指定したタスクの実施日（due_date）を更新するクイック設定関数
+   * @param {number} taskId - タスクID
+   * @param {string} dateStr - 割り当てる日付 (YYYY-MM-DD)
+   */
   async function assignTaskDueDate(taskId, dateStr) {
     const task = state.tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Append 09:00 default time if dateStr is YYYY-MM-DD
+    // 時刻が指定されていない場合はデフォルト時刻「09:00:00」を付与
     const fullDueDate = `${dateStr} 09:00:00`;
 
     const payload = {
@@ -555,20 +623,25 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshAll();
       }
     } catch (err) {
-      // handled
+      // エラー処理は apiRequest 内で統一実行
     }
   }
 
+  /**
+   * 標準リスト表示用の単一タスクカード DOM 要素を生成します。
+   * @param {Object} task - タスクオブジェクト
+   * @returns {HTMLElement} 生成されたタスクカード要素
+   */
   function createTaskCard(task) {
     const card = document.createElement('div');
     card.className = `task-card priority-${task.priority} ${task.is_completed ? 'completed' : ''}`;
     card.dataset.id = task.id;
 
-    // Priority badge text
+    // 優先度バッジ用テキスト設定
     const priorityLabels = { high: '優先度: 高', medium: '優先度: 中', low: '優先度: 低' };
     const priorityClass = `badge-priority-${task.priority}`;
 
-    // Due date badge formatting
+    // 期限日時バッジ用フォーマット取得
     let dueBadgeHtml = '';
     if (task.due_date) {
       const { label, className } = formatDueDate(task.due_date, task.is_completed);
@@ -578,7 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </span>`;
     }
 
-    // Category badge
+    // カテゴリバッジ HTML
     const categoryBadge = `<span class="badge badge-category">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
       ${escapeHtml(task.category)}
@@ -612,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Event Listeners for Card
+    // タスクカード内の各操作要素にイベントリスナーを設定
     const checkbox = card.querySelector('.task-checkbox');
     checkbox.addEventListener('change', () => toggleTaskCompletion(task.id));
 
@@ -626,8 +699,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 6. Date Formatting Helper
+  // 6. 日付フォーマットおよび HTML エスケープ用ヘルパー関数
   // --------------------------------------------------------------------------
+  /**
+   * 期限日時文字列を相対形式（「今日 18:00」「明日 10:00」「期限切れ (2日前)」など）にフォーマットします。
+   * @param {string} dueDateStr - 期限日時文字列 (YYYY-MM-DD HH:mm:ss)
+   * @param {boolean} isCompleted - 完了済みフラグ
+   * @returns {{label: string, className: string}} 表示ラベルと適用するCSSクラス名
+   */
   function formatDueDate(dueDateStr, isCompleted) {
     const due = new Date(dueDateStr.replace(' ', 'T'));
     const now = new Date();
@@ -660,6 +739,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return { label, className };
   }
 
+  /**
+   * XSS (クロスサイトスクリプティング) 対策用 HTML エスケープ処理
+   * @param {string} str - エスケープ対象の文字列
+   * @returns {string} サニタイズされた安全な HTML 文字列
+   */
   function escapeHtml(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -668,8 +752,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 7. Actions (Create, Toggle, Update, Delete)
+  // 7. タスク操作（新規作成・完了切替・更新・削除・完了済み一括削除）
   // --------------------------------------------------------------------------
+  // 新規タスク送信フォームの submit イベント処理
   taskForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = taskTitleInput.value.trim();
@@ -697,10 +782,14 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshAll();
       }
     } catch (err) {
-      // Toast displayed in apiRequest
+      // トースト通知は apiRequest 内で表示
     }
   });
 
+  /**
+   * タスクの完了・未完了ステータスをトグル（切替）送信します。
+   * @param {number} id - タスクID
+   */
   async function toggleTaskCompletion(id) {
     try {
       const res = await apiRequest('api.php?action=toggle', 'POST', { id });
@@ -709,10 +798,14 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshAll();
       }
     } catch (err) {
-      await fetchTasks(); // rollback checkbox visually
+      await fetchTasks(); // エラー時はチェックボックスの表示を元の状態にロールバック
     }
   }
 
+  /**
+   * 指定したタスクを削除します（確認ダイアログ付き）。
+   * @param {number} id - タスクID
+   */
   async function deleteTask(id) {
     if (!confirm('このタスクを削除してもよろしいですか？')) return;
     try {
@@ -722,10 +815,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshAll();
       }
     } catch (err) {
-      // handled
+      // エラー処理は apiRequest 内で統一実行
     }
   }
 
+  // 完了済みタスクの一括削除処理
   if (clearCompletedBtn) {
     clearCompletedBtn.addEventListener('click', async () => {
       if (!confirm('完了済みのタスクをすべて削除しますか？')) return;
@@ -736,14 +830,18 @@ document.addEventListener('DOMContentLoaded', () => {
           await refreshAll();
         }
       } catch (err) {
-        // handled
+        // エラー処理は apiRequest 内で統一実行
       }
     });
   }
 
   // --------------------------------------------------------------------------
-  // 8. Edit Modal
+  // 8. タスク編集用モーダルダイアログの制御
   // --------------------------------------------------------------------------
+  /**
+   * モーダルダイアログを開き、対象タスクの現在値を入力フォームにセットします。
+   * @param {Object} task - 編集対象のタスクデータ
+   */
   function openEditModal(task) {
     editTaskId.value = task.id;
     editTitle.value = task.title;
@@ -753,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editCompleted.checked = task.is_completed;
 
     if (task.due_date) {
-      // Format as YYYY-MM-DDTHH:mm for datetime-local
+      // datetime-local 入力用に YYYY-MM-DDTHH:mm 形式へフォーマット変換
       const date = new Date(task.due_date.replace(' ', 'T'));
       const pad = (n) => String(n).padStart(2, '0');
       editDueDate.value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -764,6 +862,9 @@ document.addEventListener('DOMContentLoaded', () => {
     editModal.showModal();
   }
 
+  /**
+   * モーダルダイアログを閉じます。
+   */
   function closeEditModal() {
     editModal.close();
   }
@@ -771,6 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeEditModalBtn.addEventListener('click', closeEditModal);
   cancelEditBtn.addEventListener('click', closeEditModal);
 
+  // モーダル編集フォームの submit イベント処理
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = parseInt(editTaskId.value, 10);
@@ -795,13 +897,14 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshAll();
       }
     } catch (err) {
-      // handled
+      // エラー処理は apiRequest 内で統一実行
     }
   });
 
   // --------------------------------------------------------------------------
-  // 9. Filters, Search & Sorting
+  // 9. フィルター・検索・並び替え機能のイベントリスナー設定
   // --------------------------------------------------------------------------
+  // ステータスフィルターピル（すべて/未完了/完了済み/今日/期限切れ）クリック時
   filterPills.forEach(pill => {
     pill.addEventListener('click', () => {
       filterPills.forEach(p => p.classList.remove('active'));
@@ -811,22 +914,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // カテゴリ絞り込みドロップダウン変更時
   filterCategorySelect.addEventListener('change', () => {
     state.category = filterCategorySelect.value;
     fetchTasks();
   });
 
+  // 優先度絞り込みドロップダウン変更時
   filterPrioritySelect.addEventListener('change', () => {
     state.priority = filterPrioritySelect.value;
     fetchTasks();
   });
 
+  // ソート順ドロップダウン変更時
   sortSelect.addEventListener('change', () => {
     state.sort = sortSelect.value;
     fetchTasks();
   });
 
-  // Debounced Search
+  // 検索入力欄のデバウンス処理（タイピング停止後 300ms で自動検索リクエスト発火）
   let searchTimeout = null;
   searchInput.addEventListener('input', () => {
     const val = searchInput.value.trim();
@@ -839,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
   });
 
+  // 検索クリア「✕」ボタンクリック時
   clearSearchBtn.addEventListener('click', () => {
     searchInput.value = '';
     state.searchQuery = '';
@@ -846,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchTasks();
   });
 
-  // Toggle quick add notes/due date expansion
+  // 新規登録フォームの詳細入力領域の展開/折りたたみ切替
   if (toggleDetailsBtn) {
     toggleDetailsBtn.addEventListener('click', () => {
       const isShowing = detailsExtra.classList.toggle('show');
@@ -857,8 +964,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 9b. View Mode & Schedule Navigation Events
+  // 9b. 表示モード切替およびスケジュール日付ナビゲーションのイベントリスナー
   // --------------------------------------------------------------------------
+  // リスト表示 / スケジュール表示 切替ボタン
   if (viewModeListBtn && viewModeScheduleBtn) {
     viewModeListBtn.addEventListener('click', () => {
       state.viewMode = 'list';
@@ -875,6 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 前の週へ移動 (-7日)
   if (schedPrevWeekBtn) {
     schedPrevWeekBtn.addEventListener('click', () => {
       state.scheduleOffsetDays -= 7;
@@ -882,6 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 次の週へ移動 (+7日)
   if (schedNextWeekBtn) {
     schedNextWeekBtn.addEventListener('click', () => {
       state.scheduleOffsetDays += 7;
@@ -889,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 今週（今日）に移動 (オフセット 0 にリセット)
   if (schedTodayBtn) {
     schedTodayBtn.addEventListener('click', () => {
       state.scheduleOffsetDays = 0;
@@ -897,22 +1008,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 10. Global Shortcuts & Refresh
+  // 10. グローバルキーボードショートカット＆一括データ再取得
   // --------------------------------------------------------------------------
+  // キーボードの '/' キー押下時に検索入力欄へフォーカス移動（テキスト入力中でない場合）
   document.addEventListener('keydown', (e) => {
-    // Focus search on '/' when not in input
     if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
       e.preventDefault();
       searchInput.focus();
     }
   });
 
+  /**
+   * カテゴリ・統計・タスク一覧の全データを一括取得して画面を最新状態に更新します。
+   */
   async function refreshAll() {
     await Promise.all([fetchCategories(), fetchStats(), fetchTasks()]);
   }
 
-  // Initialize
-  initTheme();
-  refreshAll();
+  // --------------------------------------------------------------------------
+  // アプリケーション初期化実行
+  // --------------------------------------------------------------------------
+  initTheme();   // テーマの設定
+  refreshAll();  // 初回の全データ取得およびレンダリング
 });
-

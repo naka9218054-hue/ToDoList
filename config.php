@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Configuration with Automatic Environment Switching
- * ローカル開発環境（localhost）とさくらレンタルサーバー環境を自動判定して設定を切り替えます。
+ * ローカル開発環境（localhost）とさくらレンタルサーバー環境を自動判定して設定を切り替えます。 
  */
 
 // 実行環境の自動判定（HTTPホスト名、サーバー名、ドキュメントルートより判定）
